@@ -1,0 +1,37 @@
+{
+  "name": "hackaton-2026-c2g",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/Miiihawk/hackaton-2026-C2G#readme",
+  "bugs": {
+    "url": "https://github.com/Miiihawk/hackaton-2026-C2G/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Miiihawk/hackaton-2026-C2G.git"
+  },
+  "license": "ISC",
+  "author": "Miiihawk",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js "
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.108.2",
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "firebase-admin": "^10.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongodb": "^7.0.0",
+    "multer": "^2.0.2",
+    "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}

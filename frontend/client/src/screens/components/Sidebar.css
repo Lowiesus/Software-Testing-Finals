@@ -1,0 +1,262 @@
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  background-image: url("../../assets/backgrounds/landing/sidebar-BG.png");
+  background-size: cover;
+  background-position: center;
+  color: #ffffff;
+  padding: 32px 20px 20px 20px;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  display: flex;
+  flex-direction: column;
+  border-right: none;
+}
+
+/* Logo */
+
+.logo {
+  width: 200px;
+  height: auto;
+  margin-bottom: 48px;
+  margin-top: 0;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Nav */
+
+nav {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+/* Links */
+
+.nav-link {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 18px;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+/* Hover */
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Active */
+
+.nav-link.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Logout Button */
+
+.logout-btn {
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* User Profile Section */
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: auto;
+  padding: 20px 16px;
+  background: transparent;
+  border-radius: 0;
+}
+
+.user-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50% 50% 0% 50%;
+  background: #d9d9d9;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 4px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-username {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.view-profile {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  text-decoration: none;
+  font-style: italic;
+}
+
+.view-profile:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.right-sidebar {
+  width: 280px;
+  height: 100vh;
+  background: #e8e8e8;
+  color: #111827;
+  padding: 20px;
+  position: fixed;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: none;
+  box-sizing: border-box;
+}
+
+.right-sidebar-search {
+  width: 100%;
+  padding: 12px 16px;
+  padding-left: 40px;
+  border-radius: 20px;
+  border: none;
+  margin-bottom: 24px;
+  outline: none;
+  background: #c0c0c0;
+  color: #5a5a5a;
+  font-size: 14px;
+  position: relative;
+}
+
+.right-sidebar-search::placeholder {
+  color: #5a5a5a;
+}
+
+.right-sidebar-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 20px 0 16px 0;
+  color: #4a4a4a;
+}
+
+.right-sidebar-item {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #d0d0d0;
+}
+
+.right-sidebar-item:last-child {
+  border-bottom: 1px solid #d0d0d0;
+}
+
+.right-sidebar-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.right-sidebar-icon-wrapper.purple {
+  background: #8b5cf6;
+}
+
+.right-sidebar-icon-wrapper.green {
+  background: #10b981;
+}
+
+.right-sidebar-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.right-sidebar-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.right-sidebar-item-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.right-sidebar-handle {
+  font-size: 13px;
+  color: #6b6b6b;
+}
+
+.right-sidebar-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.right-sidebar-tag {
+  border: 2px solid #ff8c42;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ff8c42;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.right-sidebar-tag:hover {
+  background: #ff8c42;
+  color: white;
+}
+
+@media (max-width: 1100px) {
+  .right-sidebar {
+    display: none;
+  }
+}

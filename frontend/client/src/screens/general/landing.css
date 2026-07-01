@@ -1,0 +1,535 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  display: block;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+#root {
+  width: 100vw;
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+.landing-page {
+  width: 100vw;
+  margin: 0;
+  background: #6f6f6f;
+  color: #f5f5f5;
+  font-family: "Segoe UI", Arial, sans-serif;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.landing-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 64px;
+  background: #d9d9d9;
+  color: #1f1f1f;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 48px;
+  z-index: 10;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 1px;
+}
+
+.header-logo {
+  width: 100%;
+  max-width: 120px;
+  height: auto;
+  opacity: 1;
+}
+
+.landing-nav {
+  display: flex;
+  flex-direction: row;
+  gap: 48px;
+  font-weight: 600;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+}
+
+.landing-nav a {
+  font-family: "Bona Nova", serif;
+  font-weight: 700;
+  color: #1f1f1f;
+  text-decoration: none;
+  font-size: 24px;
+  transition: color 0.2s ease;
+}
+
+.landing-nav a:hover {
+  color: #555;
+}
+
+.login-pill {
+  padding: 8px 32px;
+  border-radius: 999px;
+  border: 2px solid #1f1f1f;
+  color: #ffffff;
+  background: #1f1f1f;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.login-pill:hover {
+  background: #ffffff;
+  color: #1f1f1f;
+  border-color: #1f1f1f;
+}
+
+.landing-hero,
+.landing-about,
+.landing-community,
+.landing-contact {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.landing-hero {
+  background: #0033ae;
+  position: relative;
+  padding: 96px 48px 48px 48px;
+  overflow: visible;
+}
+
+.hero-tagline {
+  color: #e4e4e4;
+  font-style: italic;
+  line-height: 1.4;
+  max-width: 320px;
+  position: absolute;
+  left: 48px;
+  top: 96px;
+  z-index: 2;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: "Bona Nova", serif;
+}
+
+.hero-transition-image {
+  position: relative;
+  width: 100%;
+  height: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hero-image {
+  position: absolute;
+  left: 50%;
+  top: 0%;
+  transform: translate(-50%, -55%);
+  height: 150vh;
+  width: auto;
+  z-index: 1;
+  object-fit: contain;
+}
+
+.hero-title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 96px;
+  font-weight: 900;
+  color: white;
+  text-align: center;
+  line-height: 1;
+  letter-spacing: 4px;
+  z-index: 2;
+  text-shadow: 2px 2px 20px rgba(0, 0, 0, 0.3);
+  mix-blend-mode: screen;
+}
+
+.hero-cta {
+  position: absolute;
+  right: 48px;
+  bottom: 120px;
+  text-align: right;
+  color: #dcdcdc;
+  z-index: 2;
+}
+
+.hero-cta-title {
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 1px;
+  font-family: "Inter", sans-serif;
+  opacity: 0.6;
+}
+
+.hero-cta-subtitle {
+  font-size: 14px;
+  opacity: 0.6;
+  font-family: "Inter", sans-serif;
+}
+
+.hero-cta-author {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 4px;
+  font-family: "Bona Nova", serif;
+}
+
+.landing-about {
+  background: linear-gradient(
+    to right,
+    #b8b8b8 0%,
+    #b8b8b8 50%,
+    #5a5a5a 50%,
+    #5a5a5a 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  background-image: url("../../assets/backgrounds/landing/sec3-BG.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.about-card {
+  max-width: 1100px;
+  padding: 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: white;
+  border-radius: 8px;
+}
+
+.about-card h2 {
+  font-family: "Bona Nova", serif;
+  font-size: 56px;
+  font-weight: 700;
+  margin-bottom: 32px;
+  letter-spacing: 2px;
+}
+
+.about-card p {
+  font: "Didact Gothic" !important;
+  margin-bottom: 36px;
+  font-size: 20px;
+  line-height: 1.7;
+  max-width: 950px;
+}
+
+.about-author {
+  font-size: 12px;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.landing-community {
+  background-image: url("../../assets/backgrounds/landing/sec2-BG.png");
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  text-align: center;
+  padding: 64px 48px;
+  padding-top: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+  height: 100vh;
+  position: relative;
+}
+
+.landing-community::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: inherit;
+  background-size: inherit;
+  background-position: inherit;
+  background-repeat: inherit;
+  opacity: 0.7;
+  z-index: 0;
+}
+
+.landing-community h2 {
+  font-family: "Bona Nova";
+  font-size: 42px;
+  margin: 0 0 32px 0;
+  color: white;
+  font-weight: 700;
+  flex-shrink: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 2;
+}
+
+.community-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(200px, 1fr));
+  gap: 28px;
+  margin-bottom: 32px;
+  max-width: 1050px;
+  width: 100%;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.community-cards article {
+  background: transparent;
+  color: #f4f4f4;
+  border-radius: 0;
+  padding: 0;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  justify-content: flex-start;
+  align-items: center;
+  overflow: visible;
+}
+
+.community-card-title {
+  font-size: 18px;
+  margin: 0 0 6px 0;
+  font-weight: 600;
+  color: #f5f5f5;
+  text-align: center;
+}
+
+.community-card-image {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.community-card-image img {
+  width: 70%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 0;
+  display: block;
+}
+
+.community-card-description {
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 6px 0 0 0;
+  color: #f5f5f5;
+  text-align: center;
+}
+
+.community-footer {
+  font-size: 13px;
+  max-width: 850px;
+  line-height: 1.6;
+  color: white;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.landing-contact {
+  background-image: url("../../assets/backgrounds/landing/sec4-BG.png");
+  background-size: cover;
+  background-position: center;
+  text-align: left;
+  padding: 96px 48px 48px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+.landing-contact h2 {
+  font-family: "Bona Nova", serif;
+  font-size: 72px;
+  margin: 0 0 12px 0;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.landing-contact p {
+  font-size: 16px;
+  margin: 0 0 48px 0;
+  color: #f0f0f0;
+  font-style: italic;
+}
+
+.contact-links {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 64px;
+}
+
+.contact-links a {
+  color: white;
+  text-decoration: none;
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.contact-links a:hover {
+  text-decoration: underline;
+}
+
+.social-icons {
+  position: absolute;
+  top: 96px;
+  right: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  margin-bottom: 0;
+}
+
+.social-icons a {
+  display: block;
+}
+
+.social-icons img {
+  width: 72px;
+  height: 72px;
+  opacity: 0.95;
+  transition: opacity 0.2s ease;
+}
+
+.social-icons img:hover {
+  opacity: 1;
+}
+
+.footer-logo {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 1200px;
+  height: auto;
+  opacity: 0.95;
+}
+
+.scroll-top {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.scroll-top.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.scroll-top:hover {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.scroll-top img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+@media (max-width: 900px) {
+  .landing-nav {
+    display: none;
+  }
+
+  .landing-hero,
+  .landing-about,
+  .landing-community,
+  .landing-contact {
+    padding: 96px 24px 32px;
+  }
+
+  .community-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-cta {
+    position: static;
+    margin-top: 24px;
+    text-align: left;
+  }
+
+  .landing-about {
+    align-items: flex-start;
+    text-align: left;
+  }
+}

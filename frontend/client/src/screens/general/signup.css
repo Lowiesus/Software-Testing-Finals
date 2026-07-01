@@ -1,0 +1,259 @@
+.signup-page {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.signup-left {
+  flex: 1;
+  background: #d9d9d9;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  overflow: hidden;
+  gap: 12px;
+}
+
+.signup-left > h1 {
+  margin: 0;
+  padding: 0;
+  color: #000;
+  font-size: 48px;
+  font-weight: 700;
+  text-align: center;
+  font-family: "Bona Nova", serif;
+  letter-spacing: 1px;
+  line-height: 1.1;
+}
+
+.signup-right {
+  flex: 1;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.signup-right .vivide-logo {
+  width: 120px;
+  height: auto;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  left: auto;
+  z-index: 10;
+}
+
+.signup-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+.signup-container {
+  background: white;
+  padding: 0;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  max-width: 450px;
+  width: 100%;
+  height: auto;
+  overflow-y: visible;
+}
+
+.signup-container h1 {
+  margin: 0;
+  padding: 0;
+  color: #000;
+  font-size: 48px;
+  font-weight: 700;
+  text-align: center;
+  font-family: "Bona Nova", serif;
+  letter-spacing: 1px;
+  display: none;
+}
+
+.subtitle {
+  text-align: center;
+  color: white;
+  background: #1a1a1a;
+  margin: 0;
+  padding: 14px 20px;
+  font-size: 11px;
+  font-style: normal;
+  font-family: "Bona Nova", serif;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  border-radius: 12px 12px 0 0;
+  font-weight: 500;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.signup-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 12px 40px;
+}
+
+.signup-container input[type="text"],
+.signup-container input[type="email"],
+.signup-container .password-input input {
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #b8b8b8;
+  box-sizing: border-box;
+  font-family: "Didact Gothic", sans-serif;
+  color: #333;
+}
+
+.signup-container input::placeholder {
+  color: #555;
+}
+
+.signup-container .password-input {
+  position: relative;
+  width: 100%;
+}
+
+.signup-container .password-input input {
+  padding-right: 45px;
+}
+
+.signup-container .toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.signup-container .toggle-password img {
+  width: 20px;
+  height: 20px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.signup-container .toggle-password:hover img {
+  opacity: 1;
+}
+
+.signup-button {
+  width: 100%;
+  padding: 14px;
+  background: #7c3aed;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 5px;
+  transition: background 0.2s;
+  font-family: "Didact Gothic", sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.signup-button:hover {
+  background: #6d28d9;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 8px 40px;
+  color: #999;
+}
+
+.signup-container .divider::before,
+.signup-container .divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #d0d0d0;
+}
+
+.signup-container .divider span {
+  padding: 0 12px;
+  font-size: 13px;
+  font-family: "Didact Gothic", sans-serif;
+  color: #666;
+}
+
+.google-button {
+  width: calc(100% - 80px);
+  margin: 0 40px 15px 40px;
+  padding: 14px;
+  background: white;
+  color: #333;
+  border: 2px solid #999;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: "Didact Gothic", sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background 0.2s;
+  font-weight: 500;
+}
+
+.google-button:hover {
+  background: #f5f5f5;
+}
+
+.google-button img {
+  width: 18px;
+  height: 18px;
+}
+
+.login-link {
+  text-align: center;
+  margin: 8px 40px 15px 40px;
+  font-size: 12px;
+  color: #666;
+  font-family: "Didact Gothic", sans-serif;
+  padding-bottom: 0;
+}
+
+.login-link a {
+  color: #7c3aed;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
+}
+
+.signup-footer {
+  text-align: center;
+  margin: 8px 40px;
+  font-size: 8px;
+  color: #999;
+  padding: 8px 0;
+  border-top: 1px solid #eee;
+  line-height: 1.2;
+}
