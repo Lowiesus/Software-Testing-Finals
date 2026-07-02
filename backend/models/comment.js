@@ -1,80 +1,99 @@
-                                 import { getDB } from "../config/database.js";
+import { supabase } from '../config/database.js';
+import { mapComment, mapComments, toDeleteResult, toUpdateResult } from '../utils/supabaseHelpers.js';
 
 export class Comment {
-  static collection() {
-    return getDB().collection("comments");
-  }
+  static async createComment(dataOrPostId, userId, text) {
+    let data;
 
-  static async createComment(data) {
+    if (typeof dataOrPostId === 'object') {
+      data = dataOrPostId;
+    } else {
+      data = {
+        post_id: dataOrPostId,
+        author_id: userId,
+        text,
+      };
+    }
+
     const comment = {
-      post_id: data.post_id, // ObjectId of Post
-      author_id: data.author_id, // ObjectId of User
-      author_username: data.author_username || "user",
+      post_id: data.post_id,
+      author_id: data.author_id,
+      author_username: data.author_username || 'user',
       text: data.text,
-      created_at: new Date(),
-      updated_at: new Date(),
     };
 
-    return this.collection().insertOne(comment);
+    const { data: created, error } = await supabase.from('comments').insert(comment).select('*').single();
+
+    if (error) throw error;
+    return mapComment(created);
   }
 
   static async findById(id) {
-    const { ObjectId } = await import("mongodb");
-    return this.collection().findOne({ _id: new ObjectId(id) });
+    const { data, error } = await supabase.from('comments').select('*').eq('id', id).maybeSingle();
+
+    if (error) throw error;
+    return mapComment(data);
   }
 
   static async findByPostId(postId, limit = 20, skip = 0) {
-    const { ObjectId } = await import("mongodb");
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('post_id', postId)
+      .order('created_at', { ascending: false })
+      .range(skip, skip + limit - 1);
 
-    return this.collection()
-      .find({ post_id: new ObjectId(postId) })
-      .sort({ created_at: -1 })
-      .limit(limit)
-      .skip(skip)
-      .toArray();
+    if (error) throw error;
+    return mapComments(data);
   }
 
   static async findByAuthorId(authorId) {
-    const { ObjectId } = await import("mongodb");
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('author_id', authorId)
+      .order('created_at', { ascending: false });
 
-    return this.collection()
-      .find({ author_id: new ObjectId(authorId) })
-      .sort({ created_at: -1 })
-      .toArray();
+    if (error) throw error;
+    return mapComments(data);
   }
 
   static async countByPostId(postId) {
-    const { ObjectId } = await import("mongodb");
+    const { count, error } = await supabase
+      .from('comments')
+      .select('*', { count: 'exact', head: true })
+      .eq('post_id', postId);
 
-    return this.collection().countDocuments({
-      post_id: new ObjectId(postId),
-    });
+    if (error) throw error;
+    return count || 0;
   }
 
   static async updateComment(id, text) {
-    const { ObjectId } = await import("mongodb");
+    const { data, error } = await supabase
+      .from('comments')
+      .update({
+        text,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select('*')
+      .maybeSingle();
 
-    return this.collection().updateOne(
-      { _id: new ObjectId(id) },
-      {
-        $set: {
-          text,
-          updated_at: new Date(),
-        },
-      }
-    );
+    if (error) throw error;
+    return Boolean(data);
   }
 
   static async deleteComment(id) {
-    const { ObjectId } = await import("mongodb");
-    return this.collection().deleteOne({ _id: new ObjectId(id) });
+    const { error, count } = await supabase.from('comments').delete({ count: 'exact' }).eq('id', id);
+
+    if (error) throw error;
+    return (count || 0) > 0;
   }
 
   static async deleteByPostId(postId) {
-    const { ObjectId } = await import("mongodb");
+    const { error, count } = await supabase.from('comments').delete({ count: 'exact' }).eq('post_id', postId);
 
-    return this.collection().deleteMany({
-      post_id: new ObjectId(postId),
-    });
+    if (error) throw error;
+    return toDeleteResult(count);
   }
 }

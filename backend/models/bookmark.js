@@ -1,92 +1,106 @@
-import { MongoClient } from "mongodb";
-import { getDB } from "../config/database.js";
+import { supabase } from '../config/database.js';
+import { mapBookmark, toDeleteResult } from '../utils/supabaseHelpers.js';
 
 class Bookmark {
-  static collection() {
-    const db = getDB();
-    return db.collection("bookmarks");
-  }
-
   static async createBookmark(postId, userId) {
-    const { ObjectId } = await import("mongodb");
-    const bookmark = {
-      post_id: new ObjectId(postId),
-      user_id: new ObjectId(userId),
-      created_at: new Date(),
-    };
-    const result = await this.collection().insertOne(bookmark);
-    return { _id: result.insertedId, ...bookmark };
+    const { data, error } = await supabase
+      .from('bookmarks')
+      .insert({
+        post_id: postId,
+        user_id: userId,
+      })
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    return mapBookmark(data);
   }
 
   static async findById(id) {
-    const { ObjectId } = await import("mongodb");
-    return this.collection().findOne({ _id: new ObjectId(id) });
+    const { data, error } = await supabase.from('bookmarks').select('*').eq('id', id).maybeSingle();
+
+    if (error) throw error;
+    return mapBookmark(data);
   }
 
   static async findByPostId(postId) {
-    const { ObjectId } = await import("mongodb");
-    return this.collection()
-      .find({ post_id: new ObjectId(postId) })
-      .sort({ created_at: -1 })
-      .toArray();
+    const { data, error } = await supabase
+      .from('bookmarks')
+      .select('*')
+      .eq('post_id', postId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data || []).map(mapBookmark);
   }
 
   static async findByUserId(userId, limit = 20, skip = 0) {
-    const { ObjectId } = await import("mongodb");
-    return this.collection()
-      .find({ user_id: new ObjectId(userId) })
-      .sort({ created_at: -1 })
-      .limit(limit)
-      .skip(skip)
-      .toArray();
+    const { data, error } = await supabase
+      .from('bookmarks')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .range(skip, skip + limit - 1);
+
+    if (error) throw error;
+    return (data || []).map(mapBookmark);
   }
 
   static async countByPostId(postId) {
-    const { ObjectId } = await import("mongodb");
-    return this.collection().countDocuments({
-      post_id: new ObjectId(postId),
-    });
+    const { count, error } = await supabase
+      .from('bookmarks')
+      .select('*', { count: 'exact', head: true })
+      .eq('post_id', postId);
+
+    if (error) throw error;
+    return count || 0;
   }
 
   static async countByUserId(userId) {
-    const { ObjectId } = await import("mongodb");
-    return this.collection().countDocuments({
-      user_id: new ObjectId(userId),
-    });
+    const { count, error } = await supabase
+      .from('bookmarks')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    return count || 0;
   }
 
   static async deleteBookmark(id) {
-    const { ObjectId } = await import("mongodb");
-    const result = await this.collection().deleteOne({
-      _id: new ObjectId(id),
-    });
-    return result.deletedCount > 0;
+    const { error, count } = await supabase.from('bookmarks').delete({ count: 'exact' }).eq('id', id);
+
+    if (error) throw error;
+    return (count || 0) > 0;
   }
 
   static async deleteByPostAndUser(postId, userId) {
-    const { ObjectId } = await import("mongodb");
-    const result = await this.collection().deleteOne({
-      post_id: new ObjectId(postId),
-      user_id: new ObjectId(userId),
-    });
-    return result.deletedCount > 0;
+    const { error, count } = await supabase
+      .from('bookmarks')
+      .delete({ count: 'exact' })
+      .eq('post_id', postId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    return (count || 0) > 0;
   }
 
   static async deleteByPostId(postId) {
-    const { ObjectId } = await import("mongodb");
-    const result = await this.collection().deleteMany({
-      post_id: new ObjectId(postId),
-    });
-    return result.deletedCount;
+    const { error, count } = await supabase.from('bookmarks').delete({ count: 'exact' }).eq('post_id', postId);
+
+    if (error) throw error;
+    return count || 0;
   }
 
   static async isBookmarkedByUser(postId, userId) {
-    const { ObjectId } = await import("mongodb");
-    const bookmark = await this.collection().findOne({
-      post_id: new ObjectId(postId),
-      user_id: new ObjectId(userId),
-    });
-    return !!bookmark;
+    const { data, error } = await supabase
+      .from('bookmarks')
+      .select('id')
+      .eq('post_id', postId)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) throw error;
+    return Boolean(data);
   }
 }
 

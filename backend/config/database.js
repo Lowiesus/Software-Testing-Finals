@@ -1,37 +1,24 @@
-import mongodb from "mongodb";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const client = new mongodb.MongoClient(process.env.MONGODB_URI);
-const dbName = process.env.MONGODB_NAME || "hackaton2026";
-
-let db = null;
+import { supabase } from './supabase.js';
 
 export const connectToDatabase = async () => {
-  try {
-    await client.connect();
-    db = client.db(dbName);
-    console.log("connected to database:", dbName);
-  } catch (error) {
-    console.error("Failed to connect to the database", error);
-    process.exit(1);
+  const { error } = await supabase.from('users').select('id').limit(1);
+
+  if (error && error.code !== 'PGRST116') {
+    const missingTable =
+      error.code === '42P01' ||
+      error.code === 'PGRST205' ||
+      error.message?.includes('Could not find the table');
+
+    if (missingTable) {
+      throw new Error(
+        'Supabase tables are missing. Run backend/supabase/schema.sql in the Supabase SQL Editor first.',
+      );
+    }
+
+    throw new Error(`Failed to connect to Supabase: ${error.message}`);
   }
+
+  console.log('Connected to Supabase');
 };
 
-export const getDB = () => {
-  if (!db) {
-    throw new Error("Database not connected. Call connectToDatabase first.");
-  }
-  return db;
-};
-
-export const getCollection = (collectionName) => {
-  return getDB().collection(collectionName);
-};
-
-export default {
-  connectToDatabase,
-  getDB,
-  getCollection,
-};
+export { supabase };

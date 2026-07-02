@@ -7,7 +7,6 @@ export async function addComment(req, res) {
     const { id } = req.params;
     const { text } = req.body;
     const userId = req.user?.id;
-    const { ObjectId } = await import("mongodb");
 
     if (!userId) {
       return res.status(401).json({ message: "Authentication required" });
@@ -34,8 +33,8 @@ export async function addComment(req, res) {
     }
 
     const comment = await Comment.createComment({
-      post_id: new ObjectId(id),
-      author_id: new ObjectId(userId),
+      post_id: id,
+      author_id: userId,
       author_username: authorUsername,
       text,
     });

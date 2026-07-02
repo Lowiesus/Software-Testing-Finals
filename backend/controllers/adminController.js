@@ -94,10 +94,7 @@ export async function getUserById(req, res) {
 }
 export async function getAllUsers(req, res) {
   try {
-    const users = await User.collection()
-      .find({})
-      .project({ password: 0 })
-      .toArray();
+    const users = await User.getAll();
 
     res.status(200).json(users);
   } catch (error) {

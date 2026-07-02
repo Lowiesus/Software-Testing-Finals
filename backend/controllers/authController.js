@@ -9,14 +9,16 @@ import * as validators from "../utils/validators.js";
 import { auth as firebaseAdmin } from "../config/firebase.js";
 
 export async function generateTokens(user) {
+  const userId = String(user._id);
+
   const accessToken = jwt.sign(
-    { id: user._id, role: user.role },
+    { id: userId, role: user.role },
     process.env.JWT_SECRET,
     { expiresIn: "15m" },
   );
 
   const refreshToken = jwt.sign(
-    { id: user._id, role: user.role },
+    { id: userId, role: user.role },
     process.env.JWT_REFRESH_SECRET,
     { expiresIn: "7d" },
   );
@@ -291,20 +293,14 @@ export async function googleLogin(req, res) {
     let user = await User.findByEmail(email);
 
     if (!user) {
-      // Create a new user if doesn't exist
-      const newUser = {
-        username: name || email.split("@")[0],
+      const result = await User.createGoogleUser({
+        username: name || email.split('@')[0],
         email,
         firebaseUid: uid,
         profilePicture: picture || null,
-        role: "user",
-        status: USER_STATUS.NOT_VERIFIED, // New Google users start as not verified
-        created_at: new Date(),
-        isGoogleUser: true,
-      };
-
-      const result = await User.collection().insertOne(newUser);
-      user = await User.findById(result.insertedId.toString());
+        status: USER_STATUS.NOT_VERIFIED,
+      });
+      user = await User.findById(result.insertedId);
     } else {
       // Check if user is banned
       if (user.status === USER_STATUS.BANNED) {
@@ -315,7 +311,7 @@ export async function googleLogin(req, res) {
 
       // Link Firebase UID if user exists but wasn't created via Google
       if (!user.firebaseUid) {
-        await User.update(user._id.toString(), {
+        await User.update(user._id, {
           firebaseUid: uid,
           isGoogleUser: true,
           profilePicture: picture || user.profilePicture || null,

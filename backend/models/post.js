@@ -1,23 +1,18 @@
-import { getDB } from "../config/database.js";
+import { supabase } from '../config/database.js';
+import { mapPost, mapPosts, toDeleteResult, toInsertResult, toUpdateResult } from '../utils/supabaseHelpers.js';
 
-// Post Categories
 export const POST_CATEGORIES = {
-  COSMETICS: "Cosmetics",
-  ACCESSORIES: "Accessories",
-  CLOTHING: "Clothing",
+  COSMETICS: 'Cosmetics',
+  ACCESSORIES: 'Accessories',
+  CLOTHING: 'Clothing',
 };
 
-// Post Types
 export const POST_TYPES = {
-  STANDARD: "Standard Post",
-  TUTORIAL: "Tutorial",
+  STANDARD: 'Standard Post',
+  TUTORIAL: 'Tutorial',
 };
 
 export class Post {
-  static collection() {
-    return getDB().collection("posts");
-  }
-
   static async createPost(data) {
     const post = {
       caption: data.caption,
@@ -25,165 +20,150 @@ export class Post {
       category: data.category,
       post_type: data.post_type || POST_TYPES.STANDARD,
       author_id: data.author_id,
-      author_username: data.author_username || "user",
-      author_profilePicture: data.author_profilePicture || null,
+      author_username: data.author_username || 'user',
+      author_profile_picture: data.author_profilePicture || null,
       tags: data.tags || [],
-      created_at: new Date(),
-      updated_at: new Date(),
     };
 
-    // Validate category
     if (!Object.values(POST_CATEGORIES).includes(post.category)) {
       throw new Error(
-        `Invalid category. Allowed values: ${Object.values(POST_CATEGORIES).join(", ")}`,
+        `Invalid category. Allowed values: ${Object.values(POST_CATEGORIES).join(', ')}`,
       );
     }
 
-    // Validate post type
     if (!Object.values(POST_TYPES).includes(post.post_type)) {
       throw new Error(
-        `Invalid post type. Allowed values: ${Object.values(POST_TYPES).join(", ")}`,
+        `Invalid post type. Allowed values: ${Object.values(POST_TYPES).join(', ')}`,
       );
     }
 
-    return this.collection().insertOne(post);
+    const { data: created, error } = await supabase.from('posts').insert(post).select('*').single();
+
+    if (error) throw error;
+    return toInsertResult(created);
   }
 
   static async findById(id) {
-    const { ObjectId } = await import("mongodb");
-    return this.collection().findOne({ _id: new ObjectId(id) });
+    const { data, error } = await supabase.from('posts').select('*').eq('id', id).maybeSingle();
+
+    if (error) throw error;
+    return mapPost(data);
   }
 
   static async findByAuthorId(authorId) {
-    const { ObjectId } = await import("mongodb");
-    try {
-      console.log(
-        "findByAuthorId called with:",
-        authorId,
-        "type:",
-        typeof authorId,
-      );
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('author_id', authorId)
+      .order('created_at', { ascending: false });
 
-      // Try both: as a string and as ObjectId
-      let posts = await this.collection()
-        .find({ author_id: authorId })
-        .sort({ created_at: -1 })
-        .toArray();
-
-      console.log("Found posts (string match):", posts.length);
-
-      // If not found, try as ObjectId
-      if (posts.length === 0) {
-        try {
-          posts = await this.collection()
-            .find({ author_id: new ObjectId(authorId) })
-            .sort({ created_at: -1 })
-            .toArray();
-          console.log("Found posts (ObjectId match):", posts.length);
-        } catch (e) {
-          console.error("Failed to convert to ObjectId:", e.message);
-        }
-      }
-
-      return posts;
-    } catch (err) {
-      console.error(
-        "Error in findByAuthorId:",
-        err.message,
-        "authorId:",
-        authorId,
-      );
-      return [];
-    }
+    if (error) throw error;
+    return mapPosts(data);
   }
 
   static async findByCategory(category) {
     if (!Object.values(POST_CATEGORIES).includes(category)) {
       throw new Error(
-        `Invalid category. Allowed values: ${Object.values(POST_CATEGORIES).join(", ")}`,
+        `Invalid category. Allowed values: ${Object.values(POST_CATEGORIES).join(', ')}`,
       );
     }
-    return this.collection().find({ category }).toArray();
+
+    const { data, error } = await supabase.from('posts').select('*').eq('category', category);
+
+    if (error) throw error;
+    return mapPosts(data);
   }
 
   static async findByPostType(postType) {
     if (!Object.values(POST_TYPES).includes(postType)) {
       throw new Error(
-        `Invalid post type. Allowed values: ${Object.values(POST_TYPES).join(", ")}`,
+        `Invalid post type. Allowed values: ${Object.values(POST_TYPES).join(', ')}`,
       );
     }
-    return this.collection()
-      .find({ post_type: postType })
-      .sort({ created_at: -1 })
-      .toArray();
+
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('post_type', postType)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return mapPosts(data);
   }
 
   static async findByTag(tag) {
-    return this.collection().find({ tags: tag }).toArray();
+    const { data, error } = await supabase.from('posts').select('*').contains('tags', [tag]);
+
+    if (error) throw error;
+    return mapPosts(data);
   }
 
   static async getAllPosts(limit = 20, skip = 0) {
-    return this.collection()
-      .find({})
-      .sort({ created_at: -1 })
-      .limit(limit)
-      .skip(skip)
-      .toArray();
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(skip, skip + limit - 1);
+
+    if (error) throw error;
+    return mapPosts(data);
   }
 
   static async updatePost(id, updates) {
-    const { ObjectId } = await import("mongodb");
-
-    // Don't allow updating author_id or created_at
     delete updates.author_id;
     delete updates.created_at;
 
-    const updateData = {
-      ...updates,
-      updated_at: new Date(),
+    const dbUpdates = {
+      updated_at: new Date().toISOString(),
     };
 
-    return this.collection().updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateData },
-    );
+    if (updates.caption !== undefined) dbUpdates.caption = updates.caption;
+    if (updates.image !== undefined) dbUpdates.image = updates.image;
+    if (updates.category !== undefined) dbUpdates.category = updates.category;
+    if (updates.post_type !== undefined) dbUpdates.post_type = updates.post_type;
+    if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
+    if (updates.author_profilePicture !== undefined) {
+      dbUpdates.author_profile_picture = updates.author_profilePicture;
+    }
+
+    const { data, error } = await supabase.from('posts').update(dbUpdates).eq('id', id).select('*').maybeSingle();
+
+    if (error) throw error;
+    return toUpdateResult(data);
   }
 
   static async deletePost(id) {
-    const { ObjectId } = await import("mongodb");
-    return this.collection().deleteOne({ _id: new ObjectId(id) });
+    const { error, count } = await supabase.from('posts').delete({ count: 'exact' }).eq('id', id);
+
+    if (error) throw error;
+    return toDeleteResult(count);
   }
 
-  // Tag operations
   static async addTag(postId, tag) {
-    const { ObjectId } = await import("mongodb");
+    const post = await this.findById(postId);
+    if (!post) return toUpdateResult(null);
 
-    return this.collection().updateOne(
-      { _id: new ObjectId(postId) },
-      {
-        $addToSet: { tags: tag },
-        $set: { updated_at: new Date() },
-      },
-    );
+    const tags = Array.from(new Set([...(post.tags || []), tag]));
+
+    return this.updatePost(postId, { tags });
   }
 
   static async removeTag(postId, tag) {
-    const { ObjectId } = await import("mongodb");
+    const post = await this.findById(postId);
+    if (!post) return toUpdateResult(null);
 
-    return this.collection().updateOne(
-      { _id: new ObjectId(postId) },
-      {
-        $pull: { tags: tag },
-        $set: { updated_at: new Date() },
-      },
-    );
+    const tags = (post.tags || []).filter((item) => item !== tag);
+
+    return this.updatePost(postId, { tags });
   }
 
   static async searchByCaption(searchTerm) {
-    return this.collection()
-      .find({
-        caption: { $regex: searchTerm, $options: "i" },
-      })
-      .toArray();
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*')
+      .ilike('caption', `%${searchTerm}%`);
+
+    if (error) throw error;
+    return mapPosts(data);
   }
 }

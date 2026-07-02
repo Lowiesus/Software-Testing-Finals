@@ -1,96 +1,141 @@
-import { getDB } from "../config/database.js";
-import bcrypt from "bcrypt";
+import bcrypt from 'bcrypt';
+import { supabase } from '../config/database.js';
+import { mapUser, mapUsers, toDeleteResult, toInsertResult, toUpdateResult } from '../utils/supabaseHelpers.js';
 
-// User Status Constants
 export const USER_STATUS = {
-  NOT_VERIFIED: "not_verified",
-  VERIFIED: "verified",
-  BANNED: "banned",
+  NOT_VERIFIED: 'not_verified',
+  VERIFIED: 'verified',
+  BANNED: 'banned',
 };
 
 export class User {
-  static collection() {
-    return getDB().collection("users");
-  }
-
   static async findByUsernameOrEmail(identifier) {
-    return this.collection().findOne({
-      $or: [{ username: identifier }, { email: identifier }],
-    });
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .or(`username.eq."${identifier}",email.eq."${identifier}"`)
+      .maybeSingle();
+
+    if (error) throw error;
+    return mapUser(data);
   }
 
   static async findByEmail(email) {
-    return this.collection().findOne({ email });
+    const { data, error } = await supabase.from('users').select('*').eq('email', email).maybeSingle();
+
+    if (error) throw error;
+    return mapUser(data);
   }
 
   static async findByFirebaseUid(firebaseUid) {
-    return this.collection().findOne({ firebaseUid });
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('firebase_uid', firebaseUid)
+      .maybeSingle();
+
+    if (error) throw error;
+    return mapUser(data);
   }
 
   static async findById(id) {
-    const { ObjectId } = await import("mongodb");
-    return this.collection().findOne({ _id: new ObjectId(id) });
+    const { data, error } = await supabase.from('users').select('*').eq('id', id).maybeSingle();
+
+    if (error) throw error;
+    return mapUser(data);
+  }
+
+  static async getAll() {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, username, email, role, status, firebase_uid, profile_picture, is_google_user, banned_at, ban_reason, created_at, updated_at')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return mapUsers(data);
   }
 
   static async createUser(data) {
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    const user = {
-      ...data,
-      password: hashedPassword,
-      role: "user",
-      status: USER_STATUS.NOT_VERIFIED, // Default status is not verified
-      created_at: new Date(),
-    };
-    return this.collection().insertOne(user);
+
+    const { data: created, error } = await supabase
+      .from('users')
+      .insert({
+        username: data.username,
+        email: data.email,
+        password: hashedPassword,
+        role: 'user',
+        status: USER_STATUS.NOT_VERIFIED,
+      })
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    return toInsertResult(created);
+  }
+
+  static async createGoogleUser(data) {
+    const { data: created, error } = await supabase
+      .from('users')
+      .insert({
+        username: data.username,
+        email: data.email,
+        firebase_uid: data.firebaseUid,
+        profile_picture: data.profilePicture,
+        role: 'user',
+        status: data.status || USER_STATUS.NOT_VERIFIED,
+        is_google_user: true,
+      })
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    return toInsertResult(created);
   }
 
   static async update(id, updates) {
-    const { ObjectId } = await import("mongodb");
+    const dbUpdates = {
+      updated_at: new Date().toISOString(),
+    };
 
-    return this.collection().updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updates },
-    );
+    if (updates.username !== undefined) dbUpdates.username = updates.username;
+    if (updates.email !== undefined) dbUpdates.email = updates.email;
+    if (updates.password !== undefined) dbUpdates.password = updates.password;
+    if (updates.status !== undefined) dbUpdates.status = updates.status;
+    if (updates.firebaseUid !== undefined) dbUpdates.firebase_uid = updates.firebaseUid;
+    if (updates.profilePicture !== undefined) dbUpdates.profile_picture = updates.profilePicture;
+    if (updates.isGoogleUser !== undefined) dbUpdates.is_google_user = updates.isGoogleUser;
+    if (updates.banned_at !== undefined) dbUpdates.banned_at = updates.banned_at;
+    if (updates.ban_reason !== undefined) dbUpdates.ban_reason = updates.ban_reason;
+
+    const { data, error } = await supabase.from('users').update(dbUpdates).eq('id', id).select('*').maybeSingle();
+
+    if (error) throw error;
+    return toUpdateResult(data);
   }
 
   static async updateStatus(id, status) {
-    const { ObjectId } = await import("mongodb");
-
     if (!Object.values(USER_STATUS).includes(status)) {
       throw new Error(`Invalid status: ${status}`);
     }
 
-    return this.collection().updateOne(
-      { _id: new ObjectId(id) },
-      {
-        $set: {
-          status,
-          updated_at: new Date(),
-        },
-      }
-    );
+    return this.update(id, { status });
   }
 
   static async isBanned(id) {
-    const { ObjectId } = await import("mongodb");
-    const user = await this.collection().findOne(
-      { _id: new ObjectId(id) },
-      { projection: { status: 1 } }
-    );
-    return user && user.status === USER_STATUS.BANNED;
+    const user = await this.findById(id);
+    return user?.status === USER_STATUS.BANNED;
   }
 
   static async isVerified(id) {
-    const { ObjectId } = await import("mongodb");
-    const user = await this.collection().findOne(
-      { _id: new ObjectId(id) },
-      { projection: { status: 1 } }
-    );
-    return user && user.status === USER_STATUS.VERIFIED;
+    const user = await this.findById(id);
+    return user?.status === USER_STATUS.VERIFIED;
   }
 
   static async delete(id) {
-    const { ObjectId } = await import("mongodb");
-    return this.collection().deleteOne({ _id: new ObjectId(id) });
+    const { error, count } = await supabase.from('users').delete({ count: 'exact' }).eq('id', id);
+
+    if (error) throw error;
+    return toDeleteResult(count);
   }
 }

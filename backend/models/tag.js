@@ -1,80 +1,108 @@
-import { MongoClient } from "mongodb";
-import { getDB } from "../config/database.js";
+import { supabase } from '../config/database.js';
+import { mapTag, mapTags } from '../utils/supabaseHelpers.js';
 
 class Tag {
-  static collection() {
-    const db = getDB();
-    return db.collection("tags");
-  }
-
   static async createTag(name) {
-    const tag = {
-      name: name.toLowerCase(),
-      post_count: 0,
-      created_at: new Date(),
-    };
-    const result = await this.collection().insertOne(tag);
-    return { _id: result.insertedId, ...tag };
+    const { data, error } = await supabase
+      .from('tags')
+      .insert({
+        name: name.toLowerCase(),
+        post_count: 0,
+      })
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    return mapTag(data);
   }
 
   static async findById(id) {
-    const { ObjectId } = await import("mongodb");
-    return this.collection().findOne({ _id: new ObjectId(id) });
+    const { data, error } = await supabase.from('tags').select('*').eq('id', id).maybeSingle();
+
+    if (error) throw error;
+    return mapTag(data);
   }
 
   static async findByName(name) {
-    return this.collection().findOne({ name: name.toLowerCase() });
+    const { data, error } = await supabase
+      .from('tags')
+      .select('*')
+      .eq('name', name.toLowerCase())
+      .maybeSingle();
+
+    if (error) throw error;
+    return mapTag(data);
   }
 
   static async getAllTags(limit = 50, skip = 0) {
-    return this.collection()
-      .find({})
-      .sort({ post_count: -1 })
-      .limit(limit)
-      .skip(skip)
-      .toArray();
+    const { data, error } = await supabase
+      .from('tags')
+      .select('*')
+      .order('post_count', { ascending: false })
+      .range(skip, skip + limit - 1);
+
+    if (error) throw error;
+    return mapTags(data);
   }
 
   static async searchTags(query, limit = 20) {
-    return this.collection()
-      .find({ name: { $regex: query.toLowerCase(), $options: "i" } })
-      .sort({ post_count: -1 })
-      .limit(limit)
-      .toArray();
+    const { data, error } = await supabase
+      .from('tags')
+      .select('*')
+      .ilike('name', `%${query.toLowerCase()}%`)
+      .order('post_count', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return mapTags(data);
   }
 
   static async incrementPostCount(tagName) {
-    const result = await this.collection().updateOne(
-      { name: tagName.toLowerCase() },
-      { $inc: { post_count: 1 } },
-    );
-    if (result.matchedCount === 0) {
+    const existing = await this.findByName(tagName);
+
+    if (!existing) {
       return this.createTag(tagName);
     }
-    return this.findByName(tagName);
+
+    const { data, error } = await supabase
+      .from('tags')
+      .update({ post_count: existing.post_count + 1 })
+      .eq('id', existing._id)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    return mapTag(data);
   }
 
   static async decrementPostCount(tagName) {
-    const result = await this.collection().updateOne(
-      { name: tagName.toLowerCase() },
-      { $inc: { post_count: -1 } },
-    );
-    return result.modifiedCount > 0;
+    const existing = await this.findByName(tagName);
+    if (!existing || existing.post_count <= 0) return false;
+
+    const { error } = await supabase
+      .from('tags')
+      .update({ post_count: Math.max(existing.post_count - 1, 0) })
+      .eq('id', existing._id);
+
+    if (error) throw error;
+    return true;
   }
 
   static async deleteTag(id) {
-    const { ObjectId } = await import("mongodb");
-    const result = await this.collection().deleteOne({
-      _id: new ObjectId(id),
-    });
-    return result.deletedCount > 0;
+    const { error, count } = await supabase.from('tags').delete({ count: 'exact' }).eq('id', id);
+
+    if (error) throw error;
+    return (count || 0) > 0;
   }
 
   static async deleteByName(name) {
-    const result = await this.collection().deleteOne({
-      name: name.toLowerCase(),
-    });
-    return result.deletedCount > 0;
+    const { error, count } = await supabase
+      .from('tags')
+      .delete({ count: 'exact' })
+      .eq('name', name.toLowerCase());
+
+    if (error) throw error;
+    return (count || 0) > 0;
   }
 }
 
