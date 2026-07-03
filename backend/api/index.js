@@ -6,17 +6,31 @@ import { connectToDatabase } from '../config/database.js';
 import app from '../index.js';
 import { seedAdmin } from '../controllers/adminController.js';
 
-let initialized = false;
+let initPromise = null;
 
-async function ensureInitialized() {
-  if (initialized) return;
+function getInitPromise() {
+  if (!initPromise) {
+    initPromise = (async () => {
+      await connectToDatabase();
+      await seedAdmin();
+    })();
+  }
 
-  await connectToDatabase();
-  await seedAdmin();
-  initialized = true;
+  return initPromise;
 }
 
 export default async function handler(req, res) {
-  await ensureInitialized();
-  return app(req, res);
+  try {
+    await getInitPromise();
+    return app(req, res);
+  } catch (error) {
+    console.error('Vercel handler error:', error);
+
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Internal server error',
+      });
+    }
+  }
 }

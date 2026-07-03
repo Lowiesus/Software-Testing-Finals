@@ -6,7 +6,7 @@ import fs from "fs";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import * as validators from "../utils/validators.js";
-import { auth as firebaseAdmin } from "../config/firebase.js";
+import { getFirebaseAuth } from "../config/firebase.js";
 
 const refreshTokenCookieOptions = {
   httpOnly: true,
@@ -273,7 +273,8 @@ export async function googleLogin(req, res) {
       return res.status(400).json({ message: "Firebase token is required" });
     }
 
-    // Check if Firebase is initialized
+    const firebaseAdmin = await getFirebaseAuth();
+
     if (!firebaseAdmin) {
       console.error("Firebase Admin not initialized");
       return res.status(500).json({

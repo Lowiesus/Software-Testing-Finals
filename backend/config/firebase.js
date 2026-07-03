@@ -1,13 +1,19 @@
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-let auth = null;
+let authInstance = null;
 
-if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+export async function getFirebaseAuth() {
+  if (authInstance) return authInstance;
+
+  if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+    return null;
+  }
+
   try {
+    const { initializeApp, cert, getApps } = await import('firebase-admin/app');
+    const { getAuth } = await import('firebase-admin/auth');
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
     if (getApps().length === 0) {
@@ -16,15 +22,11 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
       });
     }
 
-    auth = getAuth();
+    authInstance = getAuth();
     console.log('Firebase initialized successfully');
+    return authInstance;
   } catch (error) {
     console.error('Failed to initialize Firebase:', error.message);
+    return null;
   }
-} else {
-  console.warn(
-    'FIREBASE_SERVICE_ACCOUNT not found in .env. Firebase features will be disabled.',
-  );
 }
-
-export { auth };
