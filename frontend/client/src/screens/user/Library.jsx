@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { bookmarkAPI, postAPI, likeAPI, commentAPI } from "../../utils/api";
+import { getAssetUrl } from "../../utils/constants.js";
 import heartIcon from "../../assets/icons/heart-unfilled.png";
 import commentIcon from "../../assets/icons/comments.png";
 import bookmarkIcon from "../../assets/icons/bookmark.png";
@@ -218,7 +219,7 @@ const BookmarkItem = ({ post, onBookmarkRemove }) => {
           }}
         >
           <img
-            src={`http://localhost:3000${post.image}`}
+            src={`${getAssetUrl(post.image)}`}
             alt="Post"
             style={{
               width: "100%",

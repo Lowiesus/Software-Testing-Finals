@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { API_BASE_URL, getAssetUrl } from "../../utils/constants.js";
 
 const EditProfile = () => {
   const [form, setForm] = useState({
@@ -30,7 +31,7 @@ const EditProfile = () => {
       }
 
       const response = await axios.get(
-        "http://localhost:3000/authentication/users/me",
+        `${API_BASE_URL}/authentication/users/me`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -45,7 +46,7 @@ const EditProfile = () => {
         password: "",
       });
       if (user.profilePicture) {
-        setProfilePicture(`http://localhost:3000${user.profilePicture}`);
+        setProfilePicture(getAssetUrl(user.profilePicture));
       }
       setLoading(false);
     } catch (error) {
@@ -89,7 +90,7 @@ const EditProfile = () => {
       formData.append("profilePicture", selectedFile);
 
       const response = await axios.post(
-        "http://localhost:3000/authentication/users/profile-picture",
+        `${API_BASE_URL}/authentication/users/profile-picture`,
         formData,
         {
           headers: {
@@ -99,7 +100,7 @@ const EditProfile = () => {
       );
 
       setProfilePicture(
-        `http://localhost:3000${response.data.user.profilePicture}`,
+        getAssetUrl(response.data.user.profilePicture),
       );
       setSelectedFile(null);
       setPreviewUrl(null);
@@ -122,7 +123,7 @@ const EditProfile = () => {
     try {
       const token = localStorage.getItem("accessToken");
       const response = await axios.patch(
-        "http://localhost:3000/authentication/users/me",
+        `${API_BASE_URL}/authentication/users/me`,
         {
           username: form.username,
           email: form.email,

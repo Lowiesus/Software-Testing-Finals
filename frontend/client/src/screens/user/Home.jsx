@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Home.css";
 import { postAPI, commentAPI, bookmarkAPI, likeAPI } from "../../utils/api";
+import { getAssetUrl } from "../../utils/constants.js";
 import AnimatedContent from "../../component/AnimatedContent";
 import galleryIcon from "../../assets/icons/gallery.png";
 import gifIcon from "../../assets/icons/gif.png";
@@ -748,7 +749,7 @@ const PostItem = ({ post }) => {
         <div className="post-avatar">
           {post.author_profilePicture && (
             <img
-              src={`http://localhost:3000${post.author_profilePicture}`}
+              src={`${getAssetUrl(post.author_profilePicture)}`}
               alt={post.author_username}
               style={{
                 width: "100%",
@@ -835,7 +836,7 @@ const PostItem = ({ post }) => {
       {post.image && (
         <div className="post-image-wrapper">
           <img
-            src={`http://localhost:3000${post.image}`}
+            src={`${getAssetUrl(post.image)}`}
             alt="Post"
             className="post-image"
           />

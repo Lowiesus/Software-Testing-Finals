@@ -8,6 +8,13 @@ import jwt from "jsonwebtoken";
 import * as validators from "../utils/validators.js";
 import { auth as firebaseAdmin } from "../config/firebase.js";
 
+const refreshTokenCookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
 export async function generateTokens(user) {
   const userId = String(user._id);
 
@@ -83,12 +90,7 @@ export async function login(req, res) {
         admin_id: admin._id,
       });
 
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        samSite: "strict",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 7 * 24 * 60 * 60 * 1000, //7 days
-      });
+      res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
 
       return res.status(200).json({
         message: "admin Login successful",
@@ -112,12 +114,7 @@ export async function login(req, res) {
         role: "user",
       });
 
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        samSite: "strict",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 7 * 24 * 60 * 60 * 1000, //7 days
-      });
+      res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
 
       return res.status(200).json({
         message: "User Login successful",
@@ -191,8 +188,8 @@ export async function logout(req, res) {
 
     res.clearCookie("refreshToken", {
       httpOnly: true,
-      samSite: "strict",
       secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
     });
 
     res.status(200).json({ message: "Logged out successfully" });
@@ -327,12 +324,7 @@ export async function googleLogin(req, res) {
     });
 
     // Set refresh token in httpOnly cookie
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      samSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 7 * 24 * 60 * 60 * 1000, //7 days
-    });
+    res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
 
     res.status(200).json({
       message: "Google login successful",

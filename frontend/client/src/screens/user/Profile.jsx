@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { postAPI, authAPI } from "../../utils/api";
-import axios from "axios";
+import { getAssetUrl } from "../../utils/constants.js";
 import "./Home.css";
 import editProfileIcon from "../../assets/icons/edit-profile.png";
 
@@ -124,7 +124,7 @@ const UserProfile = () => {
             >
               {user.profilePicture ? (
                 <img
-                  src={`http://localhost:3000${user.profilePicture}`}
+                  src={`${getAssetUrl(user.profilePicture)}`}
                   alt={user.username}
                   style={{
                     width: "100%",
@@ -291,7 +291,7 @@ const UserProfile = () => {
                           >
                             {post.author_profilePicture ? (
                               <img
-                                src={`http://localhost:3000${post.author_profilePicture}`}
+                                src={`${getAssetUrl(post.author_profilePicture)}`}
                                 alt={post.author_username}
                                 style={{
                                   width: "100%",
@@ -334,7 +334,7 @@ const UserProfile = () => {
                       {/* Post Image */}
                       {post.image && (
                         <img
-                          src={`http://localhost:3000${post.image}`}
+                          src={`${getAssetUrl(post.image)}`}
                           alt="Post"
                           style={{
                             maxWidth: "100%",
