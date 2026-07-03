@@ -7,6 +7,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import * as validators from "../utils/validators.js";
 import { getFirebaseAuth } from "../config/firebase.js";
+import { getProfileUploadDir } from "../utils/uploadPaths.js";
 
 const refreshTokenCookieOptions = {
   httpOnly: true,
@@ -354,8 +355,7 @@ export async function uploadProfilePicture(req, res) {
 
     // Process image with sharp to fix EXIF orientation
     try {
-      const UPLOAD_DIR = "./uploads/profiles";
-      const fullPath = path.join(UPLOAD_DIR, req.file.filename);
+      const fullPath = path.join(getProfileUploadDir(), req.file.filename);
       
       await sharp(fullPath)
         .rotate() // Auto-rotate based on EXIF data

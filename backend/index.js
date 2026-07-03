@@ -17,8 +17,10 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-// Serve static files from uploads directory (MUST be before routes)
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// Serve static uploads locally only (Vercel uses ephemeral /tmp storage)
+if (!process.env.VERCEL) {
+  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+}
 
 const allowedOrigins = [
   process.env.CORS_ORIGIN,

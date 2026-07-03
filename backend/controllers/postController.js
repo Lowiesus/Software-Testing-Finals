@@ -4,15 +4,10 @@ import { Bookmark } from "../models/bookmark.js";
 import { Like } from "../models/like.js";
 import { Tag } from "../models/tag.js";
 import { User } from "../models/user.js";
+import { getPostUploadDir } from "../utils/uploadPaths.js";
 import sharp from "sharp";
 import path from "path";
 import fs from "fs";
-
-// Ensure uploads directory exists
-const UPLOAD_DIR = "./uploads/posts";
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-}
 
 export async function createPost(req, res) {
   try {
@@ -57,7 +52,7 @@ export async function createPost(req, res) {
 
       // Process image with sharp to fix EXIF orientation
       try {
-        const fullPath = path.join(UPLOAD_DIR, req.file.filename);
+        const fullPath = path.join(getPostUploadDir(), req.file.filename);
         await sharp(fullPath)
           .rotate() // Auto-rotate based on EXIF data
           .toFile(fullPath + ".tmp");
