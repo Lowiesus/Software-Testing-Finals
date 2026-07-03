@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { API_BASE_URL, getAssetUrl } from "../../utils/constants.js";
+import { useState, useEffect } from 'react';
+import { getAssetUrl } from '../../utils/constants.js';
+import { authAPI } from '../../utils/api.js';
 
 const EditProfile = () => {
   const [form, setForm] = useState({
@@ -30,14 +30,7 @@ const EditProfile = () => {
         return;
       }
 
-      const response = await axios.get(
-        `${API_BASE_URL}/authentication/users/me`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      const response = await authAPI.getProfile();
 
       const user = response.data.user;
       setForm({
@@ -89,15 +82,7 @@ const EditProfile = () => {
       const formData = new FormData();
       formData.append("profilePicture", selectedFile);
 
-      const response = await axios.post(
-        `${API_BASE_URL}/authentication/users/profile-picture`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        },
-      );
+      const response = await authAPI.uploadProfilePicture(formData);
 
       setProfilePicture(
         getAssetUrl(response.data.user.profilePicture),
@@ -121,20 +106,11 @@ const EditProfile = () => {
     e.preventDefault();
 
     try {
-      const token = localStorage.getItem("accessToken");
-      const response = await axios.patch(
-        `${API_BASE_URL}/authentication/users/me`,
-        {
-          username: form.username,
-          email: form.email,
-          ...(form.password && { password: form.password }),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      await authAPI.updateProfile({
+        username: form.username,
+        email: form.email,
+        ...(form.password && { password: form.password }),
+      });
 
       // Update localStorage with new username
       if (form.username) {

@@ -8,8 +8,8 @@ import settingsIcon from "../../assets/icons/settings.png";
 import logoutIcon from "../../assets/icons/logout.png";
 import videoIcon from "../../assets/icons/video.png";
 import articleIcon from "../../assets/icons/article.png";
-import axios from "axios";
-import { API_BASE_URL, getAssetUrl } from "../../utils/constants.js";
+import { getAssetUrl } from '../../utils/constants.js';
+import { authAPI } from '../../utils/api.js';
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -41,14 +41,7 @@ const Sidebar = () => {
     try {
       const token = localStorage.getItem("accessToken");
       if (token) {
-        const response = await axios.get(
-          `${API_BASE_URL}/authentication/users/me`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await authAPI.getProfile();
         if (response.data.user.profilePicture) {
           setProfilePicture(
             getAssetUrl(response.data.user.profilePicture)

@@ -42,10 +42,13 @@ export const authAPI = {
     apiClient.get("/authentication/users/me"),
 
   updateProfile: (updates) =>
-    apiClient.patch("/authentication/users/me", updates),
+    apiClient.patch('/authentication/users/me', updates),
+
+  uploadProfilePicture: (formData) =>
+    apiClient.post('/authentication/users/profile-picture', formData),
 
   deleteProfile: () =>
-    apiClient.delete("/authentication/users/me"),
+    apiClient.delete('/authentication/users/me'),
 };
 
 // Post APIs
