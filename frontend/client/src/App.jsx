@@ -1,7 +1,7 @@
 import "./App.css";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
-import SignUp from "./screens/general/SignUp";
+import SignUp from "./screens/general/Signup";
 import LogIn from "./screens/general/Login";
 import Landing from "./screens/general/Landing";
 
