@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { bookmarkAPI, postAPI, likeAPI, commentAPI } from "../../utils/api";
+import { bookmarkAPI, postAPI, likeAPI, commentAPI, authAPI } from "../../utils/api";
 import { getAssetUrl } from "../../utils/constants.js";
 import { clampCount } from "../../utils/helpers.js";
 import heartIcon from "../../assets/icons/heart-unfilled.png";
@@ -10,10 +10,7 @@ import threeDotsIcon from "../../assets/icons/three-dots.png";
 const UserLibrary = () => {
   const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    fetchBookmarkedPosts();
-  }, []);
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   const fetchBookmarkedPosts = async () => {
     setLoading(true);
@@ -26,6 +23,20 @@ const UserLibrary = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      try {
+        const response = await authAPI.getProfile();
+        setCurrentUserId(response.data.user?._id || null);
+      } catch (error) {
+        console.error("Error loading current user:", error);
+      }
+    };
+
+    loadCurrentUser();
+    fetchBookmarkedPosts();
+  }, []);
 
   return (
     <div
@@ -67,6 +78,7 @@ const UserLibrary = () => {
               <BookmarkItem
                 key={post._id}
                 post={post}
+                currentUserId={currentUserId}
                 onBookmarkRemove={fetchBookmarkedPosts}
               />
             ))}
@@ -78,7 +90,7 @@ const UserLibrary = () => {
 };
 
 // Bookmark Item Component
-const BookmarkItem = ({ post, onBookmarkRemove }) => {
+const BookmarkItem = ({ post, currentUserId, onBookmarkRemove }) => {
   const [stats, setStats] = useState({
     likeCount: 0,
     commentCount: 0,
@@ -412,18 +424,21 @@ const BookmarkItem = ({ post, onBookmarkRemove }) => {
                     <span>
                       {new Date(comment.created_at).toLocaleDateString()}
                     </span>
-                    <button
-                      onClick={() => handleDeleteComment(comment._id)}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "#e74c3c",
-                        fontSize: "12px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      Delete
-                    </button>
+                    {currentUserId &&
+                      String(comment.author_id) === String(currentUserId) && (
+                        <button
+                          onClick={() => handleDeleteComment(comment._id)}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "#e74c3c",
+                            fontSize: "12px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Delete
+                        </button>
+                      )}
                   </div>
                 </div>
               ))

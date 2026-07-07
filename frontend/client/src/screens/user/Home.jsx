@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Home.css";
-import { postAPI, commentAPI, bookmarkAPI, likeAPI } from "../../utils/api";
+import { postAPI, commentAPI, bookmarkAPI, likeAPI, authAPI } from "../../utils/api";
 import { getAssetUrl } from "../../utils/constants.js";
 import { clampCount } from "../../utils/helpers.js";
 import AnimatedContent from "../../component/AnimatedContent";
@@ -56,9 +56,23 @@ const UserHome = () => {
   const [showCategoryFilter, setShowCategoryFilter] = useState(false);
   const [filterCategory, setFilterCategory] = useState("");
   const [filterPostType, setFilterPostType] = useState("");
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   const availableCategories = ["Clothing", "Cosmetics", "Accessories"];
   const availablePostTypes = ["Standard Post", "Tutorial"];
+
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      try {
+        const response = await authAPI.getProfile();
+        setCurrentUserId(response.data.user?._id || null);
+      } catch (err) {
+        console.error("Error loading current user:", err);
+      }
+    };
+
+    loadCurrentUser();
+  }, []);
 
   // Fetch posts on component mount and when tab changes
   useEffect(() => {
@@ -546,7 +560,9 @@ const UserHome = () => {
             No posts yet. Be the first to create one!
           </div>
         ) : (
-          posts.map((post) => <PostItem key={post._id} post={post} />)
+          posts.map((post) => (
+            <PostItem key={post._id} post={post} currentUserId={currentUserId} />
+          ))
         )}
       </div>
     </div>
@@ -554,7 +570,7 @@ const UserHome = () => {
 };
 
 // PostItem Component - handles individual post display and interactions
-const PostItem = ({ post }) => {
+const PostItem = ({ post, currentUserId }) => {
   const [stats, setStats] = useState({
     likeCount: 0,
     commentCount: 0,
@@ -573,6 +589,11 @@ const PostItem = ({ post }) => {
   const [editTags, setEditTags] = useState(post.tags || []);
   const [isEditing, setIsEditing] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
+
+  const isAuthor =
+    currentUserId &&
+    post.author_id &&
+    String(currentUserId) === String(post.author_id);
 
   useEffect(() => {
     fetchStats();
@@ -773,70 +794,72 @@ const PostItem = ({ post }) => {
             {new Date(post.created_at).toLocaleDateString()}
           </span>
         </div>
-        <div style={{ position: "relative" }}>
-          <img
-            src={threeDotsIcon}
-            alt="More"
-            className="more-menu"
-            onClick={() => setShowMenu(!showMenu)}
-            style={{ cursor: "pointer" }}
-          />
-          {showMenu && (
-            <div
-              style={{
-                position: "absolute",
-                right: 0,
-                top: "30px",
-                backgroundColor: "#fff",
-                border: "1px solid #e1e8ed",
-                borderRadius: "8px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                zIndex: 100,
-                minWidth: "120px",
-              }}
-            >
-              <button
-                onClick={() => {
-                  setShowEditModal(true);
-                  setShowMenu(false);
-                }}
+        {isAuthor && (
+          <div style={{ position: "relative" }}>
+            <img
+              src={threeDotsIcon}
+              alt="More"
+              className="more-menu"
+              onClick={() => setShowMenu(!showMenu)}
+              style={{ cursor: "pointer" }}
+            />
+            {showMenu && (
+              <div
                 style={{
-                  display: "block",
-                  width: "100%",
-                  padding: "10px 16px",
-                  border: "none",
-                  background: "none",
-                  textAlign: "left",
-                  cursor: "pointer",
-                  fontSize: "14px",
-                  color: "#000",
-                  borderBottom: "1px solid #e1e8ed",
+                  position: "absolute",
+                  right: 0,
+                  top: "30px",
+                  backgroundColor: "#fff",
+                  border: "1px solid #e1e8ed",
+                  borderRadius: "8px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  zIndex: 100,
+                  minWidth: "120px",
                 }}
               >
-                Edit
-              </button>
-              <button
-                onClick={() => {
-                  handleDeletePost();
-                  setShowMenu(false);
-                }}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  padding: "10px 16px",
-                  border: "none",
-                  background: "none",
-                  textAlign: "left",
-                  cursor: "pointer",
-                  fontSize: "14px",
-                  color: "#e74c3c",
-                }}
-              >
-                Delete
-              </button>
-            </div>
-          )}
-        </div>
+                <button
+                  onClick={() => {
+                    setShowEditModal(true);
+                    setShowMenu(false);
+                  }}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    padding: "10px 16px",
+                    border: "none",
+                    background: "none",
+                    textAlign: "left",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    color: "#000",
+                    borderBottom: "1px solid #e1e8ed",
+                  }}
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => {
+                    handleDeletePost();
+                    setShowMenu(false);
+                  }}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    padding: "10px 16px",
+                    border: "none",
+                    background: "none",
+                    textAlign: "left",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    color: "#e74c3c",
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {post.image && (
@@ -918,12 +941,15 @@ const PostItem = ({ post }) => {
                     </small>
                   </div>
                   <p className="comment-text">{comment.text}</p>
-                  <button
-                    className="delete-btn"
-                    onClick={() => handleDeleteComment(comment._id)}
-                  >
-                    Delete
-                  </button>
+                  {currentUserId &&
+                    String(comment.author_id) === String(currentUserId) && (
+                      <button
+                        className="delete-btn"
+                        onClick={() => handleDeleteComment(comment._id)}
+                      >
+                        Delete
+                      </button>
+                    )}
                 </div>
               ))
             )}
