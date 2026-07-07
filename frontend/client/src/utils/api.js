@@ -9,6 +9,31 @@ const apiClient = axios.create({
   },
 });
 
+const refreshClient = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+});
+
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((promise) => {
+    if (error) {
+      promise.reject(error);
+    } else {
+      promise.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+const clearSession = () => {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('username');
+  localStorage.removeItem('role');
+};
+
 // Add token to requests if it exists
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
@@ -21,6 +46,56 @@ apiClient.interceptors.request.use((config) => {
   }
   return config;
 });
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    const isAuthRoute =
+      originalRequest?.url?.includes('/authentication/login') ||
+      originalRequest?.url?.includes('/authentication/register') ||
+      originalRequest?.url?.includes('/authentication/google-login') ||
+      originalRequest?.url?.includes('/authentication/refresh');
+
+    if (error.response?.status !== 401 || !originalRequest || originalRequest._retry || isAuthRoute) {
+      return Promise.reject(error);
+    }
+
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      }).then((token) => {
+        originalRequest.headers.Authorization = `Bearer ${token}`;
+        return apiClient(originalRequest);
+      });
+    }
+
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    try {
+      const response = await refreshClient.post('/authentication/refresh');
+      const newToken = response.data.accessToken;
+
+      localStorage.setItem('accessToken', newToken);
+      processQueue(null, newToken);
+
+      originalRequest.headers.Authorization = `Bearer ${newToken}`;
+      return apiClient(originalRequest);
+    } catch (refreshError) {
+      processQueue(refreshError, null);
+      clearSession();
+
+      if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
+        window.location.href = '/login';
+      }
+
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
+    }
+  },
+);
 
 // Auth APIs
 export const authAPI = {

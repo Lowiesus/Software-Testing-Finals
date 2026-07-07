@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./Home.css";
 import { postAPI, commentAPI, bookmarkAPI, likeAPI, authAPI } from "../../utils/api";
 import { getAssetUrl } from "../../utils/constants.js";
-import { clampCount } from "../../utils/helpers.js";
+import { clampCount, getErrorMessage } from "../../utils/helpers.js";
 import AnimatedContent from "../../component/AnimatedContent";
 import galleryIcon from "../../assets/icons/gallery.png";
 import gifIcon from "../../assets/icons/gif.png";
@@ -700,7 +700,7 @@ const PostItem = ({ post, currentUserId }) => {
       loadComments();
     } catch (error) {
       console.error("Error adding comment:", error);
-      alert("Failed to add comment: " + error.message);
+      alert(getErrorMessage(error, "Failed to add comment"));
     } finally {
       setSubmitting(false);
     }

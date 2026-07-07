@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { bookmarkAPI, postAPI, likeAPI, commentAPI, authAPI } from "../../utils/api";
 import { getAssetUrl } from "../../utils/constants.js";
-import { clampCount } from "../../utils/helpers.js";
+import { clampCount, getErrorMessage } from "../../utils/helpers.js";
 import heartIcon from "../../assets/icons/heart-unfilled.png";
 import commentIcon from "../../assets/icons/comments.png";
 import bookmarkIcon from "../../assets/icons/bookmark.png";
@@ -167,7 +167,7 @@ const BookmarkItem = ({ post, currentUserId, onBookmarkRemove }) => {
       loadComments();
     } catch (error) {
       console.error("Error adding comment:", error);
-      alert("Failed to add comment: " + error.message);
+      alert(getErrorMessage(error, "Failed to add comment"));
     } finally {
       setSubmitting(false);
     }

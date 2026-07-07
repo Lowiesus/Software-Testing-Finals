@@ -1,7 +1,15 @@
 export function getErrorMessage(error, fallback = 'Something went wrong') {
+  if (error?.response?.status === 401) {
+    return 'Your session expired. Please log in again.';
+  }
+
   if (error?.response?.data?.message) {
     const message = error.response.data.message;
     return Array.isArray(message) ? message.join(', ') : message;
+  }
+
+  if (error?.response?.data?.error) {
+    return error.response.data.error;
   }
 
   if (error?.request) {
