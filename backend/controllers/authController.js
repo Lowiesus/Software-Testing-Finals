@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 import * as validators from "../utils/validators.js";
 import { getFirebaseAuth } from "../config/firebase.js";
 import { getProfileUploadDir } from "../utils/uploadPaths.js";
+import { uploadImageFile, deleteImageByUrl } from "../utils/storage.js";
 
 const refreshTokenCookieOptions = {
   httpOnly: true,
@@ -353,26 +354,34 @@ export async function uploadProfilePicture(req, res) {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    // Process image with sharp to fix EXIF orientation
+    const fullPath = path.join(getProfileUploadDir(), req.file.filename);
+
     try {
-      const fullPath = path.join(getProfileUploadDir(), req.file.filename);
-      
       await sharp(fullPath)
-        .rotate() // Auto-rotate based on EXIF data
-        .toFile(fullPath + ".tmp");
-      
-      // Replace original with rotated version
-      fs.renameSync(fullPath + ".tmp", fullPath);
-      console.log("Profile picture processed and EXIF rotation applied");
+        .rotate()
+        .toFile(`${fullPath}.tmp`);
+      fs.renameSync(`${fullPath}.tmp`, fullPath);
     } catch (err) {
       console.error("Error processing profile picture with sharp:", err.message);
-      // Continue anyway - image processing is not critical
     }
 
-    // Get the relative path from the uploaded file
-    const profilePicturePath = `/uploads/profiles/${req.file.filename}`;
+    let profilePicturePath;
+    try {
+      profilePicturePath = await uploadImageFile(req.file, "profiles");
+      if (fs.existsSync(fullPath)) {
+        fs.unlinkSync(fullPath);
+      }
+    } catch (storageError) {
+      console.error("Supabase storage upload failed, using local path:", storageError.message);
+      profilePicturePath = `/uploads/profiles/${req.file.filename}`;
+    }
 
     const Model = role.toLowerCase() === "admin" ? Admin : User;
+    const existingUser = await Model.findById(id);
+    if (existingUser?.profilePicture?.startsWith("http")) {
+      await deleteImageByUrl(existingUser.profilePicture);
+    }
+
     const result = await Model.update(id, { profilePicture: profilePicturePath });
 
     if (result.modifiedCount === 0) {

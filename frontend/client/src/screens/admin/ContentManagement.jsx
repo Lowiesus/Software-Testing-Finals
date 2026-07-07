@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { adminAPI } from "../../utils/api.js";
 
 const AdminCManage = () => {
   const [activeTab, setActiveTab] = useState("all");
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const tabs = [
     { id: "all", label: "All Posts" },
@@ -9,14 +13,39 @@ const AdminCManage = () => {
     { id: "banned", label: "Banned Posts" },
   ];
 
-  const posts = [
-    {
-      title: "title of thy post post",
-      author: "username",
-      views: "19.0K",
-      status: "Published",
-    },
-  ];
+  const loadPosts = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await adminAPI.getPosts();
+      setPosts(response.data.data || []);
+    } catch (err) {
+      console.error("Failed to load posts:", err);
+      setError("Failed to load posts.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPosts();
+  }, []);
+
+  const visiblePosts = posts;
+
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm("Delete this post permanently?")) {
+      return;
+    }
+
+    try {
+      await adminAPI.deletePost(postId);
+      await loadPosts();
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+      setError("Failed to delete post.");
+    }
+  };
 
   return (
     <div
@@ -40,7 +69,6 @@ const AdminCManage = () => {
         Content Management
       </h1>
 
-      {/* Tabs */}
       <div
         style={{
           display: "flex",
@@ -73,118 +101,68 @@ const AdminCManage = () => {
         ))}
       </div>
 
-      {/* Table */}
-      <div style={{ overflowX: "auto" }}>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            fontSize: "14px",
-          }}
-        >
-          <thead>
-            <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
-              <th
-                style={{
-                  textAlign: "left",
-                  padding: "12px 0",
-                  fontWeight: "600",
-                  color: "#111827",
-                }}
-              >
-                Post Title
-              </th>
-              <th
-                style={{
-                  textAlign: "left",
-                  padding: "12px 0",
-                  fontWeight: "600",
-                  color: "#111827",
-                }}
-              >
-                Author By
-              </th>
-              <th
-                style={{
-                  textAlign: "left",
-                  padding: "12px 0",
-                  fontWeight: "600",
-                  color: "#111827",
-                }}
-              >
-                Views
-              </th>
-              <th
-                style={{
-                  textAlign: "left",
-                  padding: "12px 0",
-                  fontWeight: "600",
-                  color: "#111827",
-                }}
-              >
-                Status
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {posts.map((post, idx) => (
-              <tr
-                key={idx}
-                style={{
-                  borderBottom: "1px solid #e5e7eb",
-                }}
-              >
-                <td
-                  style={{
-                    padding: "16px 0",
-                    color: "#374151",
-                  }}
-                >
-                  {post.title}
-                </td>
-                <td
-                  style={{
-                    padding: "16px 0",
-                    color: "#374151",
-                  }}
-                >
-                  {post.author}
-                </td>
-                <td
-                  style={{
-                    padding: "16px 0",
-                    color: "#374151",
-                  }}
-                >
-                  {post.views}
-                </td>
-                <td
-                  style={{
-                    padding: "16px 0",
-                  }}
-                >
-                  <select
-                    style={{
-                      padding: "6px 12px",
-                      borderRadius: "6px",
-                      border: "1px solid #d1d5db",
-                      backgroundColor: "#fff",
-                      cursor: "pointer",
-                      fontSize: "13px",
-                      color: "#374151",
-                    }}
-                    defaultValue={post.status}
-                  >
-                    <option value="Published">Published</option>
-                    <option value="Reported">Reported</option>
-                    <option value="Banned">Banned</option>
-                  </select>
-                </td>
+      {activeTab !== "all" && (
+        <p style={{ color: "#6b7280", marginBottom: "20px" }}>
+          Reported and banned post views are not available yet. Showing all posts instead.
+        </p>
+      )}
+
+      {error && <p style={{ color: "#b91c1c", marginBottom: "16px" }}>{error}</p>}
+      {loading ? (
+        <p>Loading posts...</p>
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              fontSize: "14px",
+            }}
+          >
+            <thead>
+              <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
+                <th style={{ textAlign: "left", padding: "12px 0" }}>Post Title</th>
+                <th style={{ textAlign: "left", padding: "12px 0" }}>Author</th>
+                <th style={{ textAlign: "left", padding: "12px 0" }}>Category</th>
+                <th style={{ textAlign: "left", padding: "12px 0" }}>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {visiblePosts.length === 0 ? (
+                <tr>
+                  <td colSpan={4} style={{ padding: "20px 0", color: "#6b7280" }}>
+                    No posts found.
+                  </td>
+                </tr>
+              ) : (
+                visiblePosts.map((post) => (
+                  <tr key={post._id} style={{ borderBottom: "1px solid #e5e7eb" }}>
+                    <td style={{ padding: "16px 0" }}>{post.caption}</td>
+                    <td style={{ padding: "16px 0" }}>{post.author_username}</td>
+                    <td style={{ padding: "16px 0" }}>{post.category}</td>
+                    <td style={{ padding: "16px 0" }}>
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePost(post._id)}
+                        style={{
+                          padding: "6px 12px",
+                          borderRadius: "6px",
+                          border: "1px solid #ef4444",
+                          backgroundColor: "#fff",
+                          color: "#ef4444",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

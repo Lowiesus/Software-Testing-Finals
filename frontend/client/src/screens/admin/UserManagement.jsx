@@ -1,7 +1,24 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { adminAPI } from "../../utils/api.js";
+
+const STATUS_OPTIONS = [
+  { value: "verified", label: "Verified" },
+  { value: "not_verified", label: "Not Verified" },
+  { value: "banned", label: "Banned" },
+];
+
+const formatStatus = (status) => {
+  if (status === "verified") return "Verified";
+  if (status === "banned") return "Banned";
+  return "Not Verified";
+};
 
 const AdminUManage = () => {
   const [activeTab, setActiveTab] = useState("all");
+  const [users, setUsers] = useState([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const tabs = [
     { id: "all", label: "All Users" },
@@ -10,15 +27,60 @@ const AdminUManage = () => {
     { id: "banned", label: "Banned Users" },
   ];
 
-  const users = [
-    {
-      username: "username",
-      email: "username@gmail.com",
-      posts: "13.0K",
-      followers: "19.0K",
-      status: "Verified",
-    },
-  ];
+  const loadUsers = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await adminAPI.getUsers();
+      setUsers(response.data || []);
+    } catch (err) {
+      console.error("Failed to load users:", err);
+      setError("Failed to load users.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) => {
+      const matchesTab =
+        activeTab === "all" ||
+        (activeTab === "verified" && user.status === "verified") ||
+        (activeTab === "not-verified" && user.status === "not_verified") ||
+        (activeTab === "banned" && user.status === "banned");
+
+      const query = search.trim().toLowerCase();
+      const matchesSearch =
+        !query ||
+        user.username?.toLowerCase().includes(query) ||
+        user.email?.toLowerCase().includes(query);
+
+      return matchesTab && matchesSearch;
+    });
+  }, [users, activeTab, search]);
+
+  const handleStatusChange = async (userId, status) => {
+    try {
+      if (status === "verified") {
+        await adminAPI.verifyUser(userId);
+      } else if (status === "banned") {
+        await adminAPI.banUser(userId, "Banned by admin");
+      } else if (status === "not_verified") {
+        await adminAPI.unbanUser(userId);
+      } else {
+        await adminAPI.updateUserStatus(userId, status);
+      }
+
+      await loadUsers();
+    } catch (err) {
+      console.error("Failed to update user status:", err);
+      setError("Failed to update user status.");
+    }
+  };
 
   return (
     <div
@@ -42,7 +104,6 @@ const AdminUManage = () => {
         User Management
       </h1>
 
-      {/* Tabs */}
       <div
         style={{
           display: "flex",
@@ -75,11 +136,12 @@ const AdminUManage = () => {
         ))}
       </div>
 
-      {/* Search Bar */}
       <div style={{ marginBottom: "30px" }}>
         <input
           type="text"
           placeholder="Search Here..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           style={{
             width: "100%",
             maxWidth: "600px",
@@ -94,136 +156,69 @@ const AdminUManage = () => {
         />
       </div>
 
-      {/* Table */}
-      <div style={{ overflowX: "auto" }}>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            fontSize: "14px",
-          }}
-        >
-          <thead>
-            <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
-              <th
-                style={{
-                  textAlign: "left",
-                  padding: "12px 0",
-                  fontWeight: "600",
-                  color: "#111827",
-                }}
-              >
-                Username
-              </th>
-              <th
-                style={{
-                  textAlign: "left",
-                  padding: "12px 0",
-                  fontWeight: "600",
-                  color: "#111827",
-                }}
-              >
-                Email Address
-              </th>
-              <th
-                style={{
-                  textAlign: "left",
-                  padding: "12px 0",
-                  fontWeight: "600",
-                  color: "#111827",
-                }}
-              >
-                Posts
-              </th>
-              <th
-                style={{
-                  textAlign: "left",
-                  padding: "12px 0",
-                  fontWeight: "600",
-                  color: "#111827",
-                }}
-              >
-                Followers
-              </th>
-              <th
-                style={{
-                  textAlign: "left",
-                  padding: "12px 0",
-                  fontWeight: "600",
-                  color: "#111827",
-                }}
-              >
-                Account Status
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user, idx) => (
-              <tr
-                key={idx}
-                style={{
-                  borderBottom: "1px solid #e5e7eb",
-                }}
-              >
-                <td
-                  style={{
-                    padding: "16px 0",
-                    color: "#374151",
-                  }}
-                >
-                  {user.username}
-                </td>
-                <td
-                  style={{
-                    padding: "16px 0",
-                    color: "#374151",
-                  }}
-                >
-                  {user.email}
-                </td>
-                <td
-                  style={{
-                    padding: "16px 0",
-                    color: "#374151",
-                  }}
-                >
-                  {user.posts}
-                </td>
-                <td
-                  style={{
-                    padding: "16px 0",
-                    color: "#374151",
-                  }}
-                >
-                  {user.followers}
-                </td>
-                <td
-                  style={{
-                    padding: "16px 0",
-                  }}
-                >
-                  <select
-                    style={{
-                      padding: "6px 12px",
-                      borderRadius: "6px",
-                      border: "1px solid #d1d5db",
-                      backgroundColor: "#fff",
-                      cursor: "pointer",
-                      fontSize: "13px",
-                      color: "#374151",
-                    }}
-                    defaultValue={user.status}
-                  >
-                    <option value="Verified">Verified</option>
-                    <option value="Not Verified">Not Verified</option>
-                    <option value="Banned">Banned</option>
-                  </select>
-                </td>
+      {error && <p style={{ color: "#b91c1c", marginBottom: "16px" }}>{error}</p>}
+      {loading ? (
+        <p>Loading users...</p>
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              fontSize: "14px",
+            }}
+          >
+            <thead>
+              <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
+                <th style={{ textAlign: "left", padding: "12px 0" }}>Username</th>
+                <th style={{ textAlign: "left", padding: "12px 0" }}>Email Address</th>
+                <th style={{ textAlign: "left", padding: "12px 0" }}>Role</th>
+                <th style={{ textAlign: "left", padding: "12px 0" }}>Account Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={4} style={{ padding: "20px 0", color: "#6b7280" }}>
+                    No users found.
+                  </td>
+                </tr>
+              ) : (
+                filteredUsers.map((user) => (
+                  <tr key={user._id} style={{ borderBottom: "1px solid #e5e7eb" }}>
+                    <td style={{ padding: "16px 0" }}>{user.username}</td>
+                    <td style={{ padding: "16px 0" }}>{user.email}</td>
+                    <td style={{ padding: "16px 0" }}>{user.role}</td>
+                    <td style={{ padding: "16px 0" }}>
+                      <select
+                        value={user.status}
+                        onChange={(e) => handleStatusChange(user._id, e.target.value)}
+                        style={{
+                          padding: "6px 12px",
+                          borderRadius: "6px",
+                          border: "1px solid #d1d5db",
+                          backgroundColor: "#fff",
+                          cursor: "pointer",
+                          fontSize: "13px",
+                        }}
+                      >
+                        {STATUS_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      <span style={{ marginLeft: "10px", color: "#6b7280" }}>
+                        {formatStatus(user.status)}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

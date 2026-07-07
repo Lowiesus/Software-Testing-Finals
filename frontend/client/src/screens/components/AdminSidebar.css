@@ -56,3 +56,11 @@ nav {
   color: white;
   font-weight: 500;
 }
+
+.admin-logout {
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}

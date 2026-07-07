@@ -45,4 +45,25 @@ router.patch(
   adminController.unbanUser
 );
 
+router.get(
+  "/stats",
+  authenticateToken,
+  requireAdmin,
+  adminController.getDashboardStats
+);
+
+router.get(
+  "/posts",
+  authenticateToken,
+  requireAdmin,
+  adminController.getAllPosts
+);
+
+router.delete(
+  "/posts/:id",
+  authenticateToken,
+  requireAdmin,
+  adminController.deletePost
+);
+
 export default router;

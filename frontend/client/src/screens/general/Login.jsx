@@ -1,6 +1,5 @@
 import React from "react";
 import "./login.css";
-import axios from "axios";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import eyeVisible from "../../assets/icons/eye-visible.png";
@@ -10,6 +9,8 @@ import vivideLogo from "../../assets/icons/vivide logo black.png";
 import { auth, provider } from "../../utils/Firebase.js";
 import { signInWithPopup } from "firebase/auth";
 import { authAPI } from "../../utils/api.js";
+import Toast from "../../components/Toast.jsx";
+import { getErrorMessage } from "../../utils/helpers.js";
 
 export default function LogIn() {
   const [email, setEmail] = useState("");
@@ -17,17 +18,21 @@ export default function LogIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ message: "", type: "info" });
   const navigate = useNavigate();
+
+  const redirectAfterLogin = (role) => {
+    navigate(role === "admin" ? "/admin/dashboard" : "/user/home");
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setToast({ message: "", type: "info" });
+
     try {
       const response = await authAPI.login({ email, password });
 
-      console.log("Login successful:", response.data);
-
-      // Store the JWT token and user info
       localStorage.setItem("accessToken", response.data.accessToken);
       localStorage.setItem("username", response.data.username);
       localStorage.setItem("role", response.data.role);
@@ -37,68 +42,56 @@ export default function LogIn() {
         localStorage.setItem("email", email);
       }
 
-      // Redirect to home/dashboard
-      navigate("/user/home");
+      setToast({
+        message: response.data.message || "Login successful!",
+        type: "success",
+      });
+
+      redirectAfterLogin(response.data.role);
     } catch (error) {
-      console.error("Full error object:", error);
-      if (error.response) {
-        console.error("Backend error response:", error.response.data);
-        alert(
-          "Login failed: " +
-            (error.response.data.message || error.response.statusText),
-        );
-      } else if (error.request) {
-        console.error("No response received:", error.request);
-        alert("Login failed: No response from server");
-      } else {
-        console.error("Error message:", error.message);
-        alert("Login failed: " + error.message);
-      }
+      setToast({
+        message: getErrorMessage(error, "Login failed"),
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const googleLogin = async () => {
+    setToast({ message: "", type: "info" });
+
     try {
       const response = await signInWithPopup(auth, provider);
       const user = response.user;
       const firebaseToken = await user.getIdToken();
-
-      console.log("Firebase token obtained, sending to backend...");
-
-      // Send token to your backend
       const backendResponse = await authAPI.googleLogin(firebaseToken);
 
-      console.log("Backend response:", backendResponse.data);
-
-      // Store the JWT token from backend
       localStorage.setItem("accessToken", backendResponse.data.accessToken);
       localStorage.setItem("username", backendResponse.data.username);
       localStorage.setItem("role", backendResponse.data.role);
 
-      // Redirect to home/dashboard
-      navigate("/user/home");
+      setToast({
+        message: backendResponse.data.message || "Google login successful!",
+        type: "success",
+      });
+
+      redirectAfterLogin(backendResponse.data.role);
     } catch (error) {
-      console.error("Full error object:", error);
-      if (error.response) {
-        console.error("Backend error response:", error.response.data);
-        alert(
-          "Login failed: " +
-            (error.response.data.message || error.response.statusText),
-        );
-      } else if (error.request) {
-        console.error("No response received:", error.request);
-        alert("Login failed: No response from server");
-      } else {
-        console.error("Error message:", error.message);
-        alert("Login failed: " + error.message);
-      }
+      setToast({
+        message: getErrorMessage(error, "Google login failed"),
+        type: "error",
+      });
     }
   };
 
   return (
     <div className="login-page">
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast({ message: "", type: "info" })}
+      />
       <div className="login-left">
         <Link to="/">
           <img src={vivideLogo} alt="Vivide logo" className="vivide-logo" />

@@ -5,9 +5,34 @@ import { Like } from "../models/like.js";
 import { Tag } from "../models/tag.js";
 import { User } from "../models/user.js";
 import { getPostUploadDir } from "../utils/uploadPaths.js";
+import { uploadImageFile, deleteImageByUrl } from "../utils/storage.js";
 import sharp from "sharp";
 import path from "path";
 import fs from "fs";
+
+async function processPostImage(file) {
+  const fullPath = path.join(getPostUploadDir(), file.filename);
+
+  try {
+    await sharp(fullPath)
+      .rotate()
+      .toFile(`${fullPath}.tmp`);
+    fs.renameSync(`${fullPath}.tmp`, fullPath);
+  } catch (err) {
+    console.error("Error processing image with sharp:", err.message);
+  }
+
+  try {
+    const publicUrl = await uploadImageFile(file, "posts");
+    if (fs.existsSync(fullPath)) {
+      fs.unlinkSync(fullPath);
+    }
+    return publicUrl;
+  } catch (storageError) {
+    console.error("Supabase storage upload failed, using local path:", storageError.message);
+    return `/uploads/posts/${file.filename}`;
+  }
+}
 
 export async function createPost(req, res) {
   try {
@@ -44,26 +69,10 @@ export async function createPost(req, res) {
       });
     }
 
-    // Handle file upload
     let imagePath = null;
     if (req.file) {
-      imagePath = `/uploads/posts/${req.file.filename}`;
+      imagePath = await processPostImage(req.file);
       console.log("Image path set to:", imagePath);
-
-      // Process image with sharp to fix EXIF orientation
-      try {
-        const fullPath = path.join(getPostUploadDir(), req.file.filename);
-        await sharp(fullPath)
-          .rotate() // Auto-rotate based on EXIF data
-          .toFile(fullPath + ".tmp");
-        
-        // Replace original with rotated version
-        fs.renameSync(fullPath + ".tmp", fullPath);
-        console.log("Image processed and EXIF rotation applied");
-      } catch (err) {
-        console.error("Error processing image with sharp:", err.message);
-        // Continue anyway - image processing is not critical
-      }
     }
 
     if (!imagePath) {
@@ -259,9 +268,11 @@ export async function updatePost(req, res) {
       updates.post_type = post_type;
     }
 
-    // Handle file upload
     if (req.file) {
-      updates.image = `/uploads/posts/${req.file.filename}`;
+      if (post.image) {
+        await deleteImageByUrl(post.image);
+      }
+      updates.image = await processPostImage(req.file);
     }
 
     if (tags) {
@@ -301,11 +312,14 @@ export async function deletePost(req, res) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    // Delete image file if exists
     if (post.image) {
-      const filePath = path.join(".", post.image);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+      if (post.image.startsWith("http")) {
+        await deleteImageByUrl(post.image);
+      } else {
+        const filePath = path.join(".", post.image);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
       }
     }
 

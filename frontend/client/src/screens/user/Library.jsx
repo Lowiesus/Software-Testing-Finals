@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { bookmarkAPI, postAPI, likeAPI, commentAPI } from "../../utils/api";
 import { getAssetUrl } from "../../utils/constants.js";
+import { clampCount } from "../../utils/helpers.js";
 import heartIcon from "../../assets/icons/heart-unfilled.png";
 import commentIcon from "../../assets/icons/comments.png";
 import bookmarkIcon from "../../assets/icons/bookmark.png";
@@ -97,7 +98,11 @@ const BookmarkItem = ({ post, onBookmarkRemove }) => {
   const fetchStats = async () => {
     try {
       const response = await postAPI.getPostStats(post._id);
-      setStats(response.data.data);
+      setStats({
+        likeCount: clampCount(response.data.data?.likeCount),
+        commentCount: clampCount(response.data.data?.commentCount),
+        bookmarkCount: clampCount(response.data.data?.bookmarkCount),
+      });
     } catch (error) {
       console.error("Error fetching stats:", error);
     }
@@ -107,10 +112,7 @@ const BookmarkItem = ({ post, onBookmarkRemove }) => {
     try {
       await bookmarkAPI.removeBookmark(post._id);
       setIsBookmarked(false);
-      setStats((prev) => ({
-        ...prev,
-        bookmarkCount: prev.bookmarkCount - 1,
-      }));
+      await fetchStats();
       onBookmarkRemove();
     } catch (error) {
       console.error("Error removing bookmark:", error);
@@ -315,7 +317,7 @@ const BookmarkItem = ({ post, onBookmarkRemove }) => {
             alt="Bookmark"
             style={{ width: "18px", height: "18px" }}
           />
-          {stats.bookmarkCount}
+          {clampCount(stats.bookmarkCount)}
         </span>
       </div>
 

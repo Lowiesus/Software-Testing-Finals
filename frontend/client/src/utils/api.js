@@ -150,4 +150,26 @@ export const tagAPI = {
     apiClient.get(`/api/tags/search?query=${query}&limit=${limit}&skip=${skip}`),
 };
 
+// Admin APIs
+export const adminAPI = {
+  getStats: () => apiClient.get('/admin/stats'),
+
+  getUsers: () => apiClient.get('/admin/users'),
+
+  updateUserStatus: (userId, status) =>
+    apiClient.patch(`/admin/users/${userId}/status`, { status }),
+
+  verifyUser: (userId) => apiClient.patch(`/admin/users/${userId}/verify`),
+
+  banUser: (userId, reason) =>
+    apiClient.patch(`/admin/users/${userId}/ban`, { reason }),
+
+  unbanUser: (userId) => apiClient.patch(`/admin/users/${userId}/unban`),
+
+  getPosts: (limit = 100, skip = 0) =>
+    apiClient.get(`/admin/posts?limit=${limit}&skip=${skip}`),
+
+  deletePost: (postId) => apiClient.delete(`/admin/posts/${postId}`),
+};
+
 export default apiClient;

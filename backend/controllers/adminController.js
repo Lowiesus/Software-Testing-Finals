@@ -1,6 +1,11 @@
 import { Admin } from "../models/admin.js";
 import { User, USER_STATUS } from "../models/user.js";
+import { Post } from "../models/post.js";
+import { Bookmark } from "../models/bookmark.js";
+import { Comment } from "../models/comment.js";
+import { Like } from "../models/like.js";
 import * as validators from "../utils/validators.js";
+import { deleteImageByUrl } from "../utils/storage.js";
 
 // Seed in first admin account
 export async function seedAdmin() {
@@ -205,6 +210,80 @@ export async function unbanUser(req, res) {
     });
   } catch (error) {
     console.error("Unban user error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+}
+
+export async function getDashboardStats(req, res) {
+  try {
+    const users = await User.getAll();
+    const posts = await Post.getAllPosts(1000, 0);
+
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now);
+    thirtyDaysAgo.setDate(now.getDate() - 30);
+
+    const newUsers = users.filter((user) => new Date(user.created_at) >= thirtyDaysAgo);
+
+    let totalBookmarks = 0;
+    let totalComments = 0;
+    let totalLikes = 0;
+
+    for (const post of posts) {
+      totalBookmarks += await Bookmark.countByPostId(post._id);
+      totalComments += await Comment.countByPostId(post._id);
+      totalLikes += await Like.countByPostId(post._id);
+    }
+
+    res.status(200).json({
+      data: {
+        totalUsers: users.length,
+        newUsers: newUsers.length,
+        totalPosts: posts.length,
+        totalBookmarks,
+        totalComments,
+        totalLikes,
+      },
+    });
+  } catch (error) {
+    console.error("Get dashboard stats error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+}
+
+export async function getAllPosts(req, res) {
+  try {
+    const { limit = 100, skip = 0 } = req.query;
+    const posts = await Post.getAllPosts(parseInt(limit, 10), parseInt(skip, 10));
+
+    res.status(200).json({ data: posts, count: posts.length });
+  } catch (error) {
+    console.error("Get all posts error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+}
+
+export async function deletePost(req, res) {
+  try {
+    const { id } = req.params;
+
+    const post = await Post.findById(id);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    if (post.image?.startsWith("http")) {
+      await deleteImageByUrl(post.image);
+    }
+
+    await Comment.deleteByPostId(id);
+    await Bookmark.deleteByPostId(id);
+    await Like.deleteByPostId(id);
+    await Post.deletePost(id);
+
+    res.status(200).json({ message: "Post deleted successfully" });
+  } catch (error) {
+    console.error("Admin delete post error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 }

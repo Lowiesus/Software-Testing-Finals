@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./Home.css";
 import { postAPI, commentAPI, bookmarkAPI, likeAPI } from "../../utils/api";
 import { getAssetUrl } from "../../utils/constants.js";
+import { clampCount } from "../../utils/helpers.js";
 import AnimatedContent from "../../component/AnimatedContent";
 import galleryIcon from "../../assets/icons/gallery.png";
 import gifIcon from "../../assets/icons/gif.png";
@@ -571,15 +572,22 @@ const PostItem = ({ post }) => {
   const [editCategory, setEditCategory] = useState(post.category);
   const [editTags, setEditTags] = useState(post.tags || []);
   const [isEditing, setIsEditing] = useState(false);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
 
   useEffect(() => {
     fetchStats();
   }, [post._id]);
 
+  const normalizeStats = (data = {}) => ({
+    likeCount: clampCount(data.likeCount),
+    commentCount: clampCount(data.commentCount),
+    bookmarkCount: clampCount(data.bookmarkCount),
+  });
+
   const fetchStats = async () => {
     try {
       const response = await postAPI.getPostStats(post._id);
-      setStats(response.data.data);
+      setStats(normalizeStats(response.data.data));
 
       // Check if user has liked this post
       try {
@@ -622,24 +630,22 @@ const PostItem = ({ post }) => {
   };
 
   const handleBookmark = async () => {
+    if (bookmarkLoading) return;
+
+    setBookmarkLoading(true);
     try {
       if (isBookmarked) {
         await bookmarkAPI.removeBookmark(post._id);
         setIsBookmarked(false);
-        setStats((prev) => ({
-          ...prev,
-          bookmarkCount: prev.bookmarkCount - 1,
-        }));
       } else {
         await bookmarkAPI.addBookmark(post._id);
         setIsBookmarked(true);
-        setStats((prev) => ({
-          ...prev,
-          bookmarkCount: prev.bookmarkCount + 1,
-        }));
       }
+      await fetchStats();
     } catch (error) {
       console.error("Error bookmarking post:", error);
+    } finally {
+      setBookmarkLoading(false);
     }
   };
 
@@ -878,7 +884,7 @@ const PostItem = ({ post }) => {
           title="Bookmark"
         >
           <img src={bookmarkIcon} alt="Bookmark" className="stat-icon" />
-          {stats.bookmarkCount}
+          {clampCount(stats.bookmarkCount)}
         </span>
       </div>
 

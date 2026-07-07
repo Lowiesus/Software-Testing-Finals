@@ -1,6 +1,5 @@
 import React from "react";
 import "./signup.css";
-import axios from "axios";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import eyeVisible from "../../assets/icons/eye-visible.png";
@@ -10,6 +9,8 @@ import vivideLogo from "../../assets/icons/vivide logo black.png";
 import { auth, provider } from "../../utils/Firebase.js";
 import { signInWithPopup } from "firebase/auth";
 import { authAPI } from "../../utils/api.js";
+import Toast from "../../components/Toast.jsx";
+import { getErrorMessage } from "../../utils/helpers.js";
 
 export default function SignUp() {
   const [username, setUsername] = useState("");
@@ -19,81 +20,70 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ message: "", type: "info" });
   const navigate = useNavigate();
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    setToast({ message: "", type: "info" });
+
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      setToast({ message: "Passwords do not match.", type: "error" });
       return;
     }
+
     setLoading(true);
     try {
       const response = await authAPI.register({ username, email, password });
-
-      console.log("Signup successful:", response.data);
-      alert("Registration successful! Please log in.");
-      navigate("/login");
+      setToast({
+        message: response.data.message || "Registration successful! Please log in.",
+        type: "success",
+      });
+      setTimeout(() => navigate("/login"), 1200);
     } catch (error) {
-      console.error("Full error object:", error);
-      if (error.response) {
-        console.error("Backend error response:", error.response.data);
-        const errorMessage = Array.isArray(error.response.data.message)
-          ? error.response.data.message.join(", ")
-          : error.response.data.message || error.response.statusText;
-        alert("Signup failed: " + errorMessage);
-      } else if (error.request) {
-        console.error("No response received:", error.request);
-        alert("Signup failed: No response from server");
-      } else {
-        console.error("Error message:", error.message);
-        alert("Signup failed: " + error.message);
-      }
+      setToast({
+        message: getErrorMessage(error, "Signup failed"),
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const googleSignup = async () => {
+    setToast({ message: "", type: "info" });
+
     try {
       const response = await signInWithPopup(auth, provider);
       const user = response.user;
       const firebaseToken = await user.getIdToken();
-
-      console.log("Firebase token obtained, sending to backend...");
-
-      // Send token to your backend
       const backendResponse = await authAPI.googleLogin(firebaseToken);
 
-      console.log("Backend response:", backendResponse.data);
-
-      // Store the JWT token from backend
       localStorage.setItem("accessToken", backendResponse.data.accessToken);
       localStorage.setItem("username", backendResponse.data.username);
       localStorage.setItem("role", backendResponse.data.role);
 
-      // Redirect to home/dashboard
-      navigate("/home");
+      setToast({
+        message: backendResponse.data.message || "Google sign-up successful!",
+        type: "success",
+      });
+
+      navigate("/user/home");
     } catch (error) {
-      console.error("Full error object:", error);
-      if (error.response) {
-        console.error("Backend error response:", error.response.data);
-        alert(
-          "Login failed: " +
-            (error.response.data.message || error.response.statusText)
-        );
-      } else if (error.request) {
-        console.error("No response received:", error.request);
-        alert("Login failed: No response from server");
-      } else {
-        console.error("Error message:", error.message);
-        alert("Login failed: " + error.message);
-      }
+      setToast({
+        message: getErrorMessage(error, "Google sign-up failed"),
+        type: "error",
+      });
     }
   };
 
   return (
     <div className="signup-page">
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast({ message: "", type: "info" })}
+      />
       <div className="signup-left">
         <h1>Register Here</h1>
         <div className="signup-container">
