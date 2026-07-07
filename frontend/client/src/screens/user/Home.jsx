@@ -16,6 +16,7 @@ import commentIcon from "../../assets/icons/comments.png";
 import bookmarkIcon from "../../assets/icons/bookmark.png";
 import threeDotsIcon from "../../assets/icons/three-dots.png";
 import postTypeIcon from "../../assets/icons/chevron-down.svg";
+import categoryIcon from "../../assets/icons/category.svg";
 import EditPostModal from "../../components/EditPostModal.jsx";
 
 const availableTags = [
