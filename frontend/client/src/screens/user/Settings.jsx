@@ -1,111 +1,55 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./Settings.css";
 
 const UserSettings = () => {
-  const [contentType, setContentType] = useState("videos");
+  const navigate = useNavigate();
+
+  const accountLinks = [
+    {
+      title: "Change Username",
+      description: "Update your display username",
+      action: () => navigate("/user/edit-profile"),
+    },
+    {
+      title: "Change Password",
+      description: "Set a new password for your account",
+      action: () => navigate("/user/edit-profile"),
+    },
+    {
+      title: "Edit Profile",
+      description: "Update bio, email, and profile picture",
+      action: () => navigate("/user/edit-profile"),
+    },
+  ];
 
   return (
-    <div
-      style={{
-        padding: "60px 20px",
-        width: "100%",
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        backgroundColor: "#fff",
-        color: "#000",
-        boxSizing: "border-box",
-        marginLeft: "-100px",
-      }}
-    >
-      <div style={{ width: "100%", maxWidth: "600px" }}>
-        <h1
-          style={{
-            fontSize: "32px",
-            fontWeight: "600",
-            marginBottom: "40px",
-            color: "#000",
-          }}
-        >
-          Settings
-        </h1>
+    <div className="user-settings-page">
+      <div className="user-settings-container">
+        <h1>Settings</h1>
 
-        {/* What do you want to see? */}
-        <div style={{ marginBottom: "40px" }}>
-          <h2
-            style={{
-              fontSize: "20px",
-              fontWeight: "500",
-              marginBottom: "20px",
-              color: "#000",
-            }}
-          >
-            What do you want to see?
-          </h2>
+        <section className="settings-section">
+          <h2>Account</h2>
+          <p className="settings-note">
+            Username and password changes are managed on the Edit Profile page.
+          </p>
 
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
-          >
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                cursor: "pointer",
-                fontSize: "16px",
-              }}
-            >
-              <input
-                type="radio"
-                name="contentType"
-                value="all"
-                checked={contentType === "all"}
-                onChange={(e) => setContentType(e.target.value)}
-                style={{ width: "20px", height: "20px", cursor: "pointer" }}
-              />
-              All kinds of posts
-            </label>
-
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                cursor: "pointer",
-                fontSize: "16px",
-              }}
-            >
-              <input
-                type="radio"
-                name="contentType"
-                value="videos"
-                checked={contentType === "videos"}
-                onChange={(e) => setContentType(e.target.value)}
-                style={{ width: "20px", height: "20px", cursor: "pointer" }}
-              />
-              Videos only
-            </label>
-
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                cursor: "pointer",
-                fontSize: "16px",
-              }}
-            >
-              <input
-                type="radio"
-                name="contentType"
-                value="articles"
-                checked={contentType === "articles"}
-                onChange={(e) => setContentType(e.target.value)}
-                style={{ width: "20px", height: "20px", cursor: "pointer" }}
-              />
-              Articles only
-            </label>
+          <div className="settings-link-list">
+            {accountLinks.map((item) => (
+              <button
+                key={item.title}
+                type="button"
+                className="settings-link-card"
+                onClick={item.action}
+              >
+                <div>
+                  <strong>{item.title}</strong>
+                  <p>{item.description}</p>
+                </div>
+                <span>→</span>
+              </button>
+            ))}
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );

@@ -1,0 +1,238 @@
+.admin-page {
+  padding: 40px 48px;
+  width: 100%;
+  min-height: 100vh;
+  background: #fff;
+  color: #111827;
+  box-sizing: border-box;
+}
+
+.admin-page h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 32px;
+}
+
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.admin-stat-card {
+  border-radius: 16px;
+  padding: 28px 20px;
+  text-align: center;
+  color: #111827;
+}
+
+.admin-stat-card.purple { background: #ddd6fe; }
+.admin-stat-card.orange { background: #fed7aa; }
+.admin-stat-card.green { background: #bbf7d0; }
+.admin-stat-card.blue { background: #bfdbfe; }
+
+.admin-stat-value {
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.admin-stat-label {
+  font-size: 14px;
+  font-style: italic;
+  color: #374151;
+}
+
+.admin-section-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.admin-divider {
+  border-top: 1px solid #d1d5db;
+  margin: 40px 0;
+}
+
+.admin-chart-card {
+  background: #f9fafb;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.admin-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.admin-chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 180px;
+}
+
+.admin-chart-bar {
+  flex: 1;
+  background: #93c5fd;
+  border-radius: 6px 6px 0 0;
+  min-height: 8px;
+}
+
+.admin-pill-tabs {
+  display: flex;
+  gap: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 28px;
+}
+
+.admin-pill-tab {
+  background: none;
+  border: none;
+  padding: 0 4px 14px;
+  font-size: 15px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  color: #9ca3af;
+}
+
+.admin-pill-tab.active {
+  color: #111827;
+  font-weight: 600;
+  border-bottom-color: #fa51a2;
+}
+
+.admin-search {
+  width: 100%;
+  max-width: 560px;
+  padding: 12px 16px 12px 40px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239ca3af' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242 1.106a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E") 14px center no-repeat;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.admin-table th {
+  text-align: left;
+  padding: 12px 0;
+  font-weight: 600;
+  color: #111827;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-table td {
+  padding: 16px 0;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-status-select {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #86efac;
+  background: #ecfdf5;
+  color: #166534;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.admin-delete-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid #ef4444;
+  background: #fff;
+  color: #ef4444;
+  cursor: pointer;
+}
+
+.admin-toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-toggle {
+  width: 48px;
+  height: 28px;
+  border-radius: 14px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s ease;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.admin-toggle.on {
+  background: #a855f7;
+  justify-content: flex-end;
+}
+
+.admin-toggle.off {
+  background: #d1d5db;
+  justify-content: flex-start;
+}
+
+.admin-toggle-knob {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.admin-announcement-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-announcement-actions button {
+  padding: 10px 24px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.admin-announcement-actions .danger {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.admin-error {
+  color: #b91c1c;
+  margin-bottom: 16px;
+}
+
+.admin-loading {
+  color: #6b7280;
+}
+
+@media (max-width: 1100px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .admin-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page {
+    padding: 24px 20px;
+  }
+}

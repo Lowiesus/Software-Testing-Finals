@@ -166,4 +166,18 @@ export class Post {
     if (error) throw error;
     return mapPosts(data);
   }
+
+  static async updateAuthorPosts(authorId, updates) {
+    const dbUpdates = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (updates.username !== undefined) dbUpdates.author_username = updates.username;
+    if (updates.profilePicture !== undefined) {
+      dbUpdates.author_profile_picture = updates.profilePicture;
+    }
+
+    const { error } = await supabase.from('posts').update(dbUpdates).eq('author_id', authorId);
+    if (error) throw error;
+  }
 }

@@ -225,6 +225,19 @@ export const tagAPI = {
     apiClient.get(`/api/tags/search?query=${query}&limit=${limit}&skip=${skip}`),
 };
 
+// Reblog APIs
+export const reblogAPI = {
+  addReblog: (postId) => apiClient.post(`/api/posts/${postId}/reblogs`),
+
+  removeReblog: (postId) => apiClient.delete(`/api/posts/${postId}/reblogs`),
+
+  getRebloggedPosts: (limit = 20, skip = 0) =>
+    apiClient.get(`/api/reblogs?limit=${limit}&skip=${skip}`),
+
+  isPostRebloggedByUser: (postId) =>
+    apiClient.get(`/api/posts/${postId}/reblogs/check`),
+};
+
 // Admin APIs
 export const adminAPI = {
   getStats: () => apiClient.get('/admin/stats'),

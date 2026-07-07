@@ -11,6 +11,7 @@ create table if not exists users (
   status text not null default 'not_verified',
   firebase_uid text unique,
   profile_picture text,
+  bio text,
   is_google_user boolean not null default false,
   banned_at timestamptz,
   ban_reason text,
@@ -70,6 +71,14 @@ create table if not exists bookmarks (
   unique (post_id, user_id)
 );
 
+create table if not exists reblogs (
+  id uuid primary key default gen_random_uuid(),
+  post_id uuid not null references posts(id) on delete cascade,
+  user_id uuid not null references users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  unique (post_id, user_id)
+);
+
 create table if not exists tags (
   id uuid primary key default gen_random_uuid(),
   name text unique not null,
@@ -83,3 +92,5 @@ create index if not exists idx_posts_created_at on posts(created_at desc);
 create index if not exists idx_comments_post_id on comments(post_id);
 create index if not exists idx_likes_post_id on likes(post_id);
 create index if not exists idx_bookmarks_user_id on bookmarks(user_id);
+create index if not exists idx_reblogs_user_id on reblogs(user_id);
+create index if not exists idx_reblogs_post_id on reblogs(post_id);

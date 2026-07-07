@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { getAssetUrl } from '../../utils/constants.js';
 import { authAPI } from '../../utils/api.js';
+import Toast from '../../components/Toast.jsx';
+import { getErrorMessage } from '../../utils/helpers.js';
 
 const EditProfile = () => {
   const [form, setForm] = useState({
     username: "",
     email: "",
     password: "",
+    bio: "",
   });
 
   const [profilePicture, setProfilePicture] = useState(null);
@@ -14,6 +17,7 @@ const EditProfile = () => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
+  const [toast, setToast] = useState({ message: "", type: "info" });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,6 +41,7 @@ const EditProfile = () => {
         username: user.username || "",
         email: user.email || "",
         password: "",
+        bio: user.bio || "",
       });
       if (user.profilePicture) {
         setProfilePicture(getAssetUrl(user.profilePicture));
@@ -90,6 +95,7 @@ const EditProfile = () => {
       setSelectedFile(null);
       setPreviewUrl(null);
       setMessage("Profile picture uploaded successfully!");
+      setToast({ message: "Profile picture uploaded successfully!", type: "success" });
 
       setTimeout(() => setMessage(""), 3000);
     } catch (error) {
@@ -109,6 +115,7 @@ const EditProfile = () => {
       await authAPI.updateProfile({
         username: form.username,
         email: form.email,
+        bio: form.bio,
         ...(form.password && { password: form.password }),
       });
 
@@ -120,11 +127,13 @@ const EditProfile = () => {
       }
       
       setMessage("Profile updated successfully!");
+      setToast({ message: "Profile updated successfully!", type: "success" });
       setForm({ ...form, password: "" });
-      setTimeout(() => setMessage(""), 3000);
     } catch (error) {
       console.error("Error updating profile:", error);
-      setMessage(error.response?.data?.message || "Error updating profile");
+      const errorMessage = getErrorMessage(error, "Error updating profile");
+      setMessage(errorMessage);
+      setToast({ message: errorMessage, type: "error" });
     }
   };
 
@@ -154,6 +163,11 @@ const EditProfile = () => {
         padding: "20px",
       }}
     >
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast({ message: "", type: "info" })}
+      />
       <div
         style={{
           width: "100%",
@@ -284,6 +298,15 @@ const EditProfile = () => {
             gap: "15px",
           }}
         >
+          <textarea
+            name="bio"
+            placeholder="Bio"
+            value={form.bio}
+            onChange={handleChange}
+            rows={3}
+            style={{ ...inputStyle, resize: "vertical" }}
+          />
+
           <input
             name="username"
             placeholder="Username"

@@ -1,17 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { adminAPI } from "../../utils/api.js";
+import "./admin.css";
 
 const STATUS_OPTIONS = [
   { value: "verified", label: "Verified" },
   { value: "not_verified", label: "Not Verified" },
   { value: "banned", label: "Banned" },
 ];
-
-const formatStatus = (status) => {
-  if (status === "verified") return "Verified";
-  if (status === "banned") return "Banned";
-  return "Not Verified";
-};
 
 const AdminUManage = () => {
   const [activeTab, setActiveTab] = useState("all");
@@ -83,124 +78,60 @@ const AdminUManage = () => {
   };
 
   return (
-    <div
-      style={{
-        padding: "40px 60px 40px 60px",
-        width: "100%",
-        minHeight: "100vh",
-        backgroundColor: "#fff",
-        color: "#000",
-        boxSizing: "border-box",
-      }}
-    >
-      <h1
-        style={{
-          fontSize: "32px",
-          fontWeight: "600",
-          marginBottom: "50px",
-          marginTop: "0",
-        }}
-      >
-        User Management
-      </h1>
+    <div className="admin-page">
+      <h1>User Management</h1>
 
-      <div
-        style={{
-          display: "flex",
-          gap: "20px",
-          borderBottom: "1px solid #e5e7eb",
-          marginBottom: "30px",
-        }}
-      >
+      <div className="admin-pill-tabs">
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            type="button"
+            className={`admin-pill-tab ${activeTab === tab.id ? "active" : ""}`}
             onClick={() => setActiveTab(tab.id)}
-            style={{
-              background: "none",
-              border: "none",
-              paddingBottom: "14px",
-              fontSize: "15px",
-              cursor: "pointer",
-              borderBottom:
-                activeTab === tab.id
-                  ? "2px solid #fa51a2"
-                  : "2px solid transparent",
-              color: activeTab === tab.id ? "#000" : "#9ca3af",
-              fontWeight: activeTab === tab.id ? "600" : "400",
-              transition: "all 0.2s ease",
-            }}
           >
             {tab.label}
           </button>
         ))}
       </div>
 
-      <div style={{ marginBottom: "30px" }}>
-        <input
-          type="text"
-          placeholder="Search Here..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            width: "100%",
-            maxWidth: "600px",
-            padding: "12px 16px",
-            borderRadius: "8px",
-            border: "1px solid #e5e7eb",
-            backgroundColor: "#f3f4f6",
-            fontSize: "14px",
-            color: "#000",
-            outline: "none",
-          }}
-        />
-      </div>
+      <input
+        type="text"
+        className="admin-search"
+        placeholder="Search Here..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
 
-      {error && <p style={{ color: "#b91c1c", marginBottom: "16px" }}>{error}</p>}
+      {error && <p className="admin-error">{error}</p>}
       {loading ? (
-        <p>Loading users...</p>
+        <p className="admin-loading">Loading users...</p>
       ) : (
         <div style={{ overflowX: "auto" }}>
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              fontSize: "14px",
-            }}
-          >
+          <table className="admin-table">
             <thead>
-              <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
-                <th style={{ textAlign: "left", padding: "12px 0" }}>Username</th>
-                <th style={{ textAlign: "left", padding: "12px 0" }}>Email Address</th>
-                <th style={{ textAlign: "left", padding: "12px 0" }}>Role</th>
-                <th style={{ textAlign: "left", padding: "12px 0" }}>Account Status</th>
+              <tr>
+                <th>Username</th>
+                <th>Email Address</th>
+                <th>Role</th>
+                <th>Account Status</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={4} style={{ padding: "20px 0", color: "#6b7280" }}>
-                    No users found.
-                  </td>
+                  <td colSpan={4}>No users found.</td>
                 </tr>
               ) : (
                 filteredUsers.map((user) => (
-                  <tr key={user._id} style={{ borderBottom: "1px solid #e5e7eb" }}>
-                    <td style={{ padding: "16px 0" }}>{user.username}</td>
-                    <td style={{ padding: "16px 0" }}>{user.email}</td>
-                    <td style={{ padding: "16px 0" }}>{user.role}</td>
-                    <td style={{ padding: "16px 0" }}>
+                  <tr key={user._id}>
+                    <td>{user.username}</td>
+                    <td>{user.email}</td>
+                    <td>{user.role}</td>
+                    <td>
                       <select
+                        className="admin-status-select"
                         value={user.status}
                         onChange={(e) => handleStatusChange(user._id, e.target.value)}
-                        style={{
-                          padding: "6px 12px",
-                          borderRadius: "6px",
-                          border: "1px solid #d1d5db",
-                          backgroundColor: "#fff",
-                          cursor: "pointer",
-                          fontSize: "13px",
-                        }}
                       >
                         {STATUS_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>
@@ -208,9 +139,6 @@ const AdminUManage = () => {
                           </option>
                         ))}
                       </select>
-                      <span style={{ marginLeft: "10px", color: "#6b7280" }}>
-                        {formatStatus(user.status)}
-                      </span>
                     </td>
                   </tr>
                 ))

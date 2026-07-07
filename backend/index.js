@@ -6,7 +6,7 @@ import postRoute from "./routes/postRoute.js";
 import commentRoute from "./routes/commentRoute.js";
 import bookmarkRoute from "./routes/bookmarkRoute.js";
 import likeRoute from "./routes/likeRoute.js";
-import tagRoute from "./routes/tagRoute.js";
+import reblogRoute from "./routes/reblogRoute.js";
 import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -56,6 +56,7 @@ app.use("/api", postRoute);
 app.use("/api", commentRoute);
 app.use("/api", bookmarkRoute);
 app.use("/api", likeRoute);
+app.use("/api", reblogRoute);
 app.use("/api", tagRoute);
 
 app.use((req, res) => {

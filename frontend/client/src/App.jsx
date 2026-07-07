@@ -1,5 +1,6 @@
 import "./App.css";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { ProtectedRoute, GuestRoute } from "./components/ProtectedRoute.jsx";
 
 import SignUp from "./screens/general/Signup";
 import LogIn from "./screens/general/Login";
@@ -45,22 +46,22 @@ function AppContent() {
         <Routes>
           {/* General */}
           <Route path="/" element={<Landing />} />
-          <Route path="/register" element={<SignUp />} />
-          <Route path="/login" element={<LogIn />} />
+          <Route path="/register" element={<GuestRoute><SignUp /></GuestRoute>} />
+          <Route path="/login" element={<GuestRoute><LogIn /></GuestRoute>} />
 
           {/* Admin */}
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/users" element={<AdminUManage />} />
-          <Route path="/admin/content" element={<AdminCManage />} />
-          <Route path="/admin/settings" element={<AdminSettings />} />
+          <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin"><AdminUManage /></ProtectedRoute>} />
+          <Route path="/admin/content" element={<ProtectedRoute requiredRole="admin"><AdminCManage /></ProtectedRoute>} />
+          <Route path="/admin/settings" element={<ProtectedRoute requiredRole="admin"><AdminSettings /></ProtectedRoute>} />
 
           {/* User */}
-          <Route path="/user/home" element={<UserHome />} />
-          <Route path="/user/profile" element={<UserProfile />} />
-          <Route path="/user/edit-profile" element={<EditProfile />} />
-          <Route path="/user/library" element={<UserLibrary />} />
-          <Route path="/user/settings" element={<UserSettings />} />
-          <Route path="/user/explore" element={<UserExplore />} />
+          <Route path="/user/home" element={<ProtectedRoute><UserHome /></ProtectedRoute>} />
+          <Route path="/user/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+          <Route path="/user/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+          <Route path="/user/library" element={<ProtectedRoute><UserLibrary /></ProtectedRoute>} />
+          <Route path="/user/settings" element={<ProtectedRoute><UserSettings /></ProtectedRoute>} />
+          <Route path="/user/explore" element={<ProtectedRoute><UserExplore /></ProtectedRoute>} />
         </Routes>
       </div>
     </>

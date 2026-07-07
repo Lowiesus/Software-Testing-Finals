@@ -1,5 +1,6 @@
 import { User, USER_STATUS } from "../models/user.js";
 import { Admin } from "../models/admin.js";
+import { Post } from "../models/post.js";
 import sharp from "sharp";
 import path from "path";
 import fs from "fs";
@@ -237,6 +238,15 @@ export async function updateProfile(req, res) {
     if (result.modifiedCount === 0)
       return res.status(404).json({ message: "no changes made" });
 
+    if (role.toLowerCase() !== "admin") {
+      const postUpdates = {};
+      if (updates.username) postUpdates.username = updates.username;
+      if (updates.profilePicture) postUpdates.profilePicture = updates.profilePicture;
+      if (Object.keys(postUpdates).length > 0) {
+        await Post.updateAuthorPosts(id, postUpdates);
+      }
+    }
+
     const updatedUser = await Model.findById(id);
     if (updatedUser?.password) {
       delete updatedUser.password;
@@ -386,6 +396,10 @@ export async function uploadProfilePicture(req, res) {
 
     if (result.modifiedCount === 0) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    if (role.toLowerCase() !== "admin") {
+      await Post.updateAuthorPosts(id, { profilePicture: profilePicturePath });
     }
 
     const updatedUser = await Model.findById(id);

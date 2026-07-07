@@ -48,7 +48,7 @@ export class User {
   static async getAll() {
     const { data, error } = await supabase
       .from('users')
-      .select('id, username, email, role, status, firebase_uid, profile_picture, is_google_user, banned_at, ban_reason, created_at, updated_at')
+      .select('id, username, email, role, status, firebase_uid, profile_picture, bio, is_google_user, banned_at, ban_reason, created_at, updated_at')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -104,6 +104,7 @@ export class User {
     if (updates.status !== undefined) dbUpdates.status = updates.status;
     if (updates.firebaseUid !== undefined) dbUpdates.firebase_uid = updates.firebaseUid;
     if (updates.profilePicture !== undefined) dbUpdates.profile_picture = updates.profilePicture;
+    if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
     if (updates.isGoogleUser !== undefined) dbUpdates.is_google_user = updates.isGoogleUser;
     if (updates.banned_at !== undefined) dbUpdates.banned_at = updates.banned_at;
     if (updates.ban_reason !== undefined) dbUpdates.ban_reason = updates.ban_reason;

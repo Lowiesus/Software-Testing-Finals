@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { adminAPI } from "../../utils/api.js";
+import "./admin.css";
 
 const formatCount = (value) => {
-  if (value >= 1000) {
-    return `${(value / 1000).toFixed(1)}k`;
-  }
+  if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;
   return String(value);
 };
 
@@ -13,7 +12,7 @@ const AdminDashboard = () => {
     totalUsers: 0,
     newUsers: 0,
     totalPosts: 0,
-    totalBookmarks: 0,
+    totalReblogs: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -35,81 +34,74 @@ const AdminDashboard = () => {
   }, []);
 
   const cards = [
-    { label: "total users", value: formatCount(stats.totalUsers) },
-    { label: "new users (30d)", value: formatCount(stats.newUsers) },
-    { label: "total posts", value: formatCount(stats.totalPosts) },
-    { label: "total bookmarks", value: formatCount(stats.totalBookmarks) },
+    { label: "total users", value: formatCount(stats.totalUsers), color: "purple" },
+    { label: "new users (30d)", value: formatCount(stats.newUsers), color: "orange" },
+    { label: "total posts", value: formatCount(stats.totalPosts), color: "green" },
+    { label: "total reblogs", value: formatCount(stats.totalReblogs), color: "blue" },
   ];
 
-  return (
-    <div
-      style={{
-        padding: "40px 60px 40px 60px",
-        width: "100%",
-        minHeight: "100vh",
-        backgroundColor: "#fff",
-        color: "#000",
-        boxSizing: "border-box",
-      }}
-    >
-      <h1
-        style={{
-          fontSize: "32px",
-          fontWeight: "600",
-          marginBottom: "40px",
-          marginTop: "0",
-        }}
-      >
-        Dashboard
-      </h1>
+  const chartData = Array.from({ length: 12 }, (_, index) => ({
+    label: `${(index + 1) * 5}k`,
+    value: 20 + Math.round((stats.totalUsers / 12) * (index + 1) * 0.4),
+  }));
 
-      {error && (
-        <p style={{ color: "#b91c1c", marginBottom: "20px" }}>{error}</p>
-      )}
+  return (
+    <div className="admin-page">
+      <h1>Dashboard</h1>
+
+      {error && <p className="admin-error">{error}</p>}
 
       {loading ? (
-        <p>Loading dashboard...</p>
+        <p className="admin-loading">Loading dashboard...</p>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "30px",
-            marginBottom: "60px",
-          }}
-        >
-          {cards.map((stat) => (
-            <div
-              key={stat.label}
-              style={{
-                backgroundColor: "#e5e7eb",
-                padding: "30px 20px",
-                borderRadius: "12px",
-                textAlign: "center",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "28px",
-                  fontWeight: "700",
-                  color: "#000",
-                  marginBottom: "8px",
-                }}
-              >
-                {stat.value}
+        <>
+          <div className="admin-stats-grid">
+            {cards.map((stat) => (
+              <div key={stat.label} className={`admin-stat-card ${stat.color}`}>
+                <div className="admin-stat-value">{stat.value}</div>
+                <div className="admin-stat-label">{stat.label}</div>
               </div>
-              <div
-                style={{
-                  fontSize: "14px",
-                  color: "#6b7280",
-                  fontStyle: "italic",
-                }}
-              >
-                {stat.label}
+            ))}
+          </div>
+
+          <div className="admin-divider" />
+
+          <div>
+            <h2 className="admin-section-title">User Growth</h2>
+            <div className="admin-chart-card">
+              <div className="admin-chart-header">
+                <span>User Details</span>
+                <select>
+                  <option>October</option>
+                  <option>November</option>
+                  <option>December</option>
+                </select>
+              </div>
+              <div className="admin-chart-bars">
+                {chartData.map((point) => (
+                  <div
+                    key={point.label}
+                    className="admin-chart-bar"
+                    style={{ height: `${Math.min(point.value, 100)}%` }}
+                    title={point.label}
+                  />
+                ))}
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+
+          <div className="admin-divider" />
+
+          <div>
+            <h2 className="admin-section-title">Announcement</h2>
+            <div className="admin-announcement-actions">
+              <button type="button">See All</button>
+              <button type="button">Create</button>
+              <button type="button">Edit</button>
+              <button type="button" className="danger">Delete</button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

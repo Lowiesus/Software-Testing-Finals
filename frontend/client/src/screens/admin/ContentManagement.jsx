@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { adminAPI } from "../../utils/api.js";
+import "./admin.css";
 
 const AdminCManage = () => {
   const [activeTab, setActiveTab] = useState("all");
@@ -31,12 +32,8 @@ const AdminCManage = () => {
     loadPosts();
   }, []);
 
-  const visiblePosts = posts;
-
   const handleDeletePost = async (postId) => {
-    if (!window.confirm("Delete this post permanently?")) {
-      return;
-    }
+    if (!window.confirm("Delete this post permanently?")) return;
 
     try {
       await adminAPI.deletePost(postId);
@@ -48,53 +45,16 @@ const AdminCManage = () => {
   };
 
   return (
-    <div
-      style={{
-        padding: "40px 60px 40px 60px",
-        width: "100%",
-        minHeight: "100vh",
-        backgroundColor: "#fff",
-        color: "#000",
-        boxSizing: "border-box",
-      }}
-    >
-      <h1
-        style={{
-          fontSize: "32px",
-          fontWeight: "600",
-          marginBottom: "50px",
-          marginTop: "0",
-        }}
-      >
-        Content Management
-      </h1>
+    <div className="admin-page">
+      <h1>Content Management</h1>
 
-      <div
-        style={{
-          display: "flex",
-          gap: "20px",
-          borderBottom: "1px solid #e5e7eb",
-          marginBottom: "30px",
-        }}
-      >
+      <div className="admin-pill-tabs">
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            type="button"
+            className={`admin-pill-tab ${activeTab === tab.id ? "active" : ""}`}
             onClick={() => setActiveTab(tab.id)}
-            style={{
-              background: "none",
-              border: "none",
-              paddingBottom: "14px",
-              fontSize: "15px",
-              cursor: "pointer",
-              borderBottom:
-                activeTab === tab.id
-                  ? "2px solid #fa51a2"
-                  : "2px solid transparent",
-              color: activeTab === tab.id ? "#000" : "#9ca3af",
-              fontWeight: activeTab === tab.id ? "600" : "400",
-              transition: "all 0.2s ease",
-            }}
           >
             {tab.label}
           </button>
@@ -102,56 +62,41 @@ const AdminCManage = () => {
       </div>
 
       {activeTab !== "all" && (
-        <p style={{ color: "#6b7280", marginBottom: "20px" }}>
-          Reported and banned post views are not available yet. Showing all posts instead.
+        <p className="admin-loading">
+          Reported and banned post filters are not available yet. Showing all posts.
         </p>
       )}
 
-      {error && <p style={{ color: "#b91c1c", marginBottom: "16px" }}>{error}</p>}
+      {error && <p className="admin-error">{error}</p>}
       {loading ? (
-        <p>Loading posts...</p>
+        <p className="admin-loading">Loading posts...</p>
       ) : (
         <div style={{ overflowX: "auto" }}>
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              fontSize: "14px",
-            }}
-          >
+          <table className="admin-table">
             <thead>
-              <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
-                <th style={{ textAlign: "left", padding: "12px 0" }}>Post Title</th>
-                <th style={{ textAlign: "left", padding: "12px 0" }}>Author</th>
-                <th style={{ textAlign: "left", padding: "12px 0" }}>Category</th>
-                <th style={{ textAlign: "left", padding: "12px 0" }}>Actions</th>
+              <tr>
+                <th>Post Title</th>
+                <th>Author By</th>
+                <th>Category</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {visiblePosts.length === 0 ? (
+              {posts.length === 0 ? (
                 <tr>
-                  <td colSpan={4} style={{ padding: "20px 0", color: "#6b7280" }}>
-                    No posts found.
-                  </td>
+                  <td colSpan={4}>No posts found.</td>
                 </tr>
               ) : (
-                visiblePosts.map((post) => (
-                  <tr key={post._id} style={{ borderBottom: "1px solid #e5e7eb" }}>
-                    <td style={{ padding: "16px 0" }}>{post.caption}</td>
-                    <td style={{ padding: "16px 0" }}>{post.author_username}</td>
-                    <td style={{ padding: "16px 0" }}>{post.category}</td>
-                    <td style={{ padding: "16px 0" }}>
+                posts.map((post) => (
+                  <tr key={post._id}>
+                    <td>{post.caption}</td>
+                    <td>{post.author_username}</td>
+                    <td>{post.category}</td>
+                    <td>
                       <button
                         type="button"
+                        className="admin-delete-btn"
                         onClick={() => handleDeletePost(post._id)}
-                        style={{
-                          padding: "6px 12px",
-                          borderRadius: "6px",
-                          border: "1px solid #ef4444",
-                          backgroundColor: "#fff",
-                          color: "#ef4444",
-                          cursor: "pointer",
-                        }}
                       >
                         Delete
                       </button>

@@ -1,6 +1,7 @@
 import { Post, POST_CATEGORIES, POST_TYPES } from "../models/post.js";
 import { Comment } from "../models/comment.js";
 import { Bookmark } from "../models/bookmark.js";
+import { Reblog } from "../models/reblog.js";
 import { Like } from "../models/like.js";
 import { Tag } from "../models/tag.js";
 import { User } from "../models/user.js";
@@ -326,6 +327,7 @@ export async function deletePost(req, res) {
     // Cascade delete related data
     await Comment.deleteByPostId(id);
     await Bookmark.deleteByPostId(id);
+    await Reblog.deleteByPostId(id);
     await Like.deleteByPostId(id);
 
     // Decrement tag counts
@@ -767,11 +769,13 @@ export async function getPostStats(req, res) {
     const commentCount = await Comment.countByPostId(id);
     const bookmarkCount = await Bookmark.countByPostId(id);
     const likeCount = await Like.countByPostId(id);
+    const reblogCount = await Reblog.countByPostId(id);
 
     const stats = {
       commentCount,
       bookmarkCount,
       likeCount,
+      reblogCount,
     };
 
     res.status(200).json({ data: stats });

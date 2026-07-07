@@ -4,6 +4,7 @@ import { Post } from "../models/post.js";
 import { Bookmark } from "../models/bookmark.js";
 import { Comment } from "../models/comment.js";
 import { Like } from "../models/like.js";
+import { Reblog } from "../models/reblog.js";
 import * as validators from "../utils/validators.js";
 import { deleteImageByUrl } from "../utils/storage.js";
 
@@ -224,6 +225,7 @@ export async function getDashboardStats(req, res) {
     thirtyDaysAgo.setDate(now.getDate() - 30);
 
     const newUsers = users.filter((user) => new Date(user.created_at) >= thirtyDaysAgo);
+    const totalReblogs = await Reblog.countAll();
 
     let totalBookmarks = 0;
     let totalComments = 0;
@@ -240,6 +242,7 @@ export async function getDashboardStats(req, res) {
         totalUsers: users.length,
         newUsers: newUsers.length,
         totalPosts: posts.length,
+        totalReblogs,
         totalBookmarks,
         totalComments,
         totalLikes,
@@ -278,6 +281,7 @@ export async function deletePost(req, res) {
 
     await Comment.deleteByPostId(id);
     await Bookmark.deleteByPostId(id);
+    await Reblog.deleteByPostId(id);
     await Like.deleteByPostId(id);
     await Post.deletePost(id);
 

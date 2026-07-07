@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Home.css";
-import { postAPI, commentAPI, bookmarkAPI, likeAPI, authAPI } from "../../utils/api";
+import { postAPI, commentAPI, bookmarkAPI, likeAPI, authAPI, reblogAPI } from "../../utils/api";
 import { getAssetUrl } from "../../utils/constants.js";
 import { clampCount, getErrorMessage } from "../../utils/helpers.js";
 import AnimatedContent from "../../component/AnimatedContent";
@@ -578,6 +578,7 @@ const PostItem = ({ post, currentUserId }) => {
   });
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isReblogged, setIsReblogged] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
@@ -589,6 +590,7 @@ const PostItem = ({ post, currentUserId }) => {
   const [editTags, setEditTags] = useState(post.tags || []);
   const [isEditing, setIsEditing] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  const [reblogLoading, setReblogLoading] = useState(false);
 
   const isAuthor =
     currentUserId &&
@@ -603,6 +605,7 @@ const PostItem = ({ post, currentUserId }) => {
     likeCount: clampCount(data.likeCount),
     commentCount: clampCount(data.commentCount),
     bookmarkCount: clampCount(data.bookmarkCount),
+    reblogCount: clampCount(data.reblogCount),
   });
 
   const fetchStats = async () => {
@@ -628,6 +631,14 @@ const PostItem = ({ post, currentUserId }) => {
       } catch (err) {
         console.error("Error checking bookmark status:", err);
         setIsBookmarked(false);
+      }
+
+      try {
+        const reblogCheckResponse = await reblogAPI.isPostRebloggedByUser(post._id);
+        setIsReblogged(reblogCheckResponse.data.data || false);
+      } catch (err) {
+        console.error("Error checking reblog status:", err);
+        setIsReblogged(false);
       }
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -667,6 +678,27 @@ const PostItem = ({ post, currentUserId }) => {
       console.error("Error bookmarking post:", error);
     } finally {
       setBookmarkLoading(false);
+    }
+  };
+
+  const handleReblog = async () => {
+    if (reblogLoading || isAuthor) return;
+
+    setReblogLoading(true);
+    try {
+      if (isReblogged) {
+        await reblogAPI.removeReblog(post._id);
+        setIsReblogged(false);
+      } else {
+        await reblogAPI.addReblog(post._id);
+        setIsReblogged(true);
+      }
+      await fetchStats();
+    } catch (error) {
+      console.error("Error reblogging post:", error);
+      alert(getErrorMessage(error, "Failed to reblog post"));
+    } finally {
+      setReblogLoading(false);
     }
   };
 
@@ -900,6 +932,15 @@ const PostItem = ({ post, currentUserId }) => {
         >
           <img src={commentIcon} alt="Comment" className="stat-icon" />
           {stats.commentCount}
+        </span>
+        <span
+          className={`stat-item ${isReblogged ? "active" : ""}`}
+          onClick={handleReblog}
+          title={isAuthor ? "Cannot reblog your own post" : "Reblog"}
+          style={isAuthor ? { opacity: 0.4, cursor: "not-allowed" } : undefined}
+        >
+          <span className="stat-icon reblog-icon">↻</span>
+          {clampCount(stats.reblogCount)}
         </span>
         <span
           className={`stat-item ${isBookmarked ? "active" : ""}`}

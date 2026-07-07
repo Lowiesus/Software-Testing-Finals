@@ -391,6 +391,16 @@ body {
   object-fit: contain;
 }
 
+.reblog-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+}
+
 /* Post Modal Styles */
 .modal-overlay {
   position: fixed;

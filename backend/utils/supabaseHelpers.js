@@ -19,6 +19,7 @@ export const mapUser = (row) => {
     status: row.status,
     firebaseUid: row.firebase_uid,
     profilePicture: row.profile_picture,
+    bio: row.bio || '',
     isGoogleUser: row.is_google_user,
     banned_at: row.banned_at,
     ban_reason: row.ban_reason,
@@ -95,6 +96,17 @@ export const mapLike = (row) => {
 };
 
 export const mapBookmark = (row) => {
+  if (!row) return null;
+
+  return {
+    _id: row.id,
+    post_id: row.post_id,
+    user_id: row.user_id,
+    created_at: row.created_at,
+  };
+};
+
+export const mapReblog = (row) => {
   if (!row) return null;
 
   return {
