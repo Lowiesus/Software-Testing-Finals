@@ -11,6 +11,7 @@ import tagRoute from "./routes/tagRoute.js";
 import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
+import { isAllowedOrigin } from "./utils/cors.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -22,34 +23,6 @@ app.use(cookieParser());
 if (!process.env.VERCEL) {
   app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 }
-
-const parseOrigins = (value) => {
-  if (!value) return [];
-  return value.split(",").map((origin) => origin.trim()).filter(Boolean);
-};
-
-const allowedOrigins = [
-  ...parseOrigins(process.env.CORS_ORIGIN),
-  ...parseOrigins(process.env.CORS_ORIGINS),
-  "http://localhost:5173",
-  "http://localhost:3000",
-];
-
-const isAllowedOrigin = (origin) => {
-  if (!origin) return true;
-  if (allowedOrigins.includes(origin)) return true;
-
-  // Allow Vercel preview URLs for this project (e.g. software-testing-finals-xvio-lilac.vercel.app)
-  const vercelPrefix = process.env.CORS_VERCEL_PREFIX || "software-testing-finals";
-  if (
-    origin.startsWith(`https://${vercelPrefix}`) &&
-    origin.endsWith(".vercel.app")
-  ) {
-    return true;
-  }
-
-  return false;
-};
 
 app.use(
   cors({
