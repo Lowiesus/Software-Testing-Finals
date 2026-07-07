@@ -11,7 +11,11 @@ Full-stack app with a React frontend and Express backend backed by Supabase (Pos
 ## Supabase setup
 
 1. Create a project at [https://supabase.com](https://supabase.com)
-2. Open **SQL Editor** and run `backend/supabase/schema.sql`
+2. Open **SQL Editor** and run these scripts in order:
+   - `backend/supabase/schema.sql`
+   - `backend/supabase/migrations.sql` (if the project already existed before bio/reblogs)
+   - `backend/supabase/storage.sql`
+   - `backend/supabase/rls.sql` (required — enables Row Level Security)
 3. Copy your project URL and service role key from **Project Settings → API**
 
 ## Local development
@@ -55,7 +59,8 @@ Deploy **two separate Vercel projects** from the same repo.
 | `SUPABASE_SERVICE_ROLE_KEY` | your service role key |
 | `JWT_SECRET` | strong random string |
 | `JWT_REFRESH_SECRET` | strong random string |
-| `CORS_ORIGIN` | `https://your-frontend.vercel.app` |
+| `CORS_ORIGIN` | `https://your-frontend.vercel.app` (comma-separated for multiple URLs) |
+| `CORS_VERCEL_PREFIX` | `software-testing-finals` (auto-allows matching `*.vercel.app` previews) |
 | `ADMIN_EMAIL` | admin email |
 | `ADMIN_PASSWORD` | admin password |
 | `FIREBASE_SERVICE_ACCOUNT` | Firebase JSON (optional) |

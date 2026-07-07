@@ -7,6 +7,7 @@ import commentRoute from "./routes/commentRoute.js";
 import bookmarkRoute from "./routes/bookmarkRoute.js";
 import likeRoute from "./routes/likeRoute.js";
 import reblogRoute from "./routes/reblogRoute.js";
+import tagRoute from "./routes/tagRoute.js";
 import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -22,25 +23,48 @@ if (!process.env.VERCEL) {
   app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 }
 
+const parseOrigins = (value) => {
+  if (!value) return [];
+  return value.split(",").map((origin) => origin.trim()).filter(Boolean);
+};
+
 const allowedOrigins = [
-  process.env.CORS_ORIGIN,
-  'http://localhost:5173',
-  'http://localhost:3000',
-].filter(Boolean);
+  ...parseOrigins(process.env.CORS_ORIGIN),
+  ...parseOrigins(process.env.CORS_ORIGINS),
+  "http://localhost:5173",
+  "http://localhost:3000",
+];
+
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+
+  // Allow Vercel preview URLs for this project (e.g. software-testing-finals-xvio-lilac.vercel.app)
+  const vercelPrefix = process.env.CORS_VERCEL_PREFIX || "software-testing-finals";
+  if (
+    origin.startsWith(`https://${vercelPrefix}`) &&
+    origin.endsWith(".vercel.app")
+  ) {
+    return true;
+  }
+
+  return false;
+};
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (isAllowedOrigin(origin)) {
         callback(null, true);
         return;
       }
 
-      callback(new Error(`Origin ${origin} is not allowed by CORS`));
+      console.warn(`Blocked CORS origin: ${origin}`);
+      callback(null, false);
     },
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   }),
 );
 

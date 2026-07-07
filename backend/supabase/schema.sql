@@ -94,3 +94,22 @@ create index if not exists idx_likes_post_id on likes(post_id);
 create index if not exists idx_bookmarks_user_id on bookmarks(user_id);
 create index if not exists idx_reblogs_user_id on reblogs(user_id);
 create index if not exists idx_reblogs_post_id on reblogs(post_id);
+
+-- Row Level Security (blocks direct public API access; backend service role still works)
+alter table public.users enable row level security;
+alter table public.admins enable row level security;
+alter table public.posts enable row level security;
+alter table public.comments enable row level security;
+alter table public.likes enable row level security;
+alter table public.bookmarks enable row level security;
+alter table public.reblogs enable row level security;
+alter table public.tags enable row level security;
+
+alter table public.users force row level security;
+alter table public.admins force row level security;
+alter table public.posts force row level security;
+alter table public.comments force row level security;
+alter table public.likes force row level security;
+alter table public.bookmarks force row level security;
+alter table public.reblogs force row level security;
+alter table public.tags force row level security;
