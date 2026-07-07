@@ -44,7 +44,7 @@ export default function ProfilePostCard({ post, isOwner, onUpdated, onDeleted })
   };
 
   return (
-    <div className="profile-post-card">
+    <div className={`profile-post-card${showMenu ? " menu-open" : ""}`}>
       <div className="profile-post-header">
         <div className="profile-post-author">
           <div className="profile-post-avatar">
@@ -63,7 +63,7 @@ export default function ProfilePostCard({ post, isOwner, onUpdated, onDeleted })
         </div>
 
         {isOwner && (
-          <div className="profile-post-menu-wrap">
+          <div className={`profile-post-menu-wrap${showMenu ? " is-open" : ""}`}>
             <img
               src={threeDotsIcon}
               alt="More"
@@ -72,10 +72,18 @@ export default function ProfilePostCard({ post, isOwner, onUpdated, onDeleted })
             />
             {showMenu && (
               <div className="profile-post-menu">
-                <button type="button" onClick={() => { setShowEditModal(true); setShowMenu(false); }}>
+                <button
+                  type="button"
+                  className="profile-post-menu-edit"
+                  onClick={() => { setShowEditModal(true); setShowMenu(false); }}
+                >
                   Edit
                 </button>
-                <button type="button" className="danger" onClick={() => { handleDeletePost(); setShowMenu(false); }}>
+                <button
+                  type="button"
+                  className="profile-post-menu-delete"
+                  onClick={() => { handleDeletePost(); setShowMenu(false); }}
+                >
                   Delete
                 </button>
               </div>

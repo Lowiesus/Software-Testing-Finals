@@ -5,6 +5,7 @@ import { getAssetUrl } from "../../utils/constants.js";
 import { getErrorMessage } from "../../utils/helpers.js";
 import Toast from "../../components/Toast.jsx";
 import ProfilePostCard from "../../components/ProfilePostCard.jsx";
+import "../../components/ProfilePostCard.css";
 import "./Home.css";
 import editProfileIcon from "../../assets/icons/edit-profile.png";
 

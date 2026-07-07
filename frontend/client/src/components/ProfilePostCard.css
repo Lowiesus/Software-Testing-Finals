@@ -4,6 +4,11 @@
   border-radius: 12px;
   background-color: #f7f9fa;
   margin-bottom: 15px;
+  position: relative;
+}
+
+.profile-post-card.menu-open {
+  z-index: 200;
 }
 
 .profile-post-header {
@@ -52,6 +57,10 @@
   position: relative;
 }
 
+.profile-post-menu-wrap.is-open {
+  z-index: 201;
+}
+
 .profile-post-menu-btn {
   width: 20px;
   height: 20px;
@@ -65,34 +74,51 @@
   background: #fff;
   border: 1px solid #e1e8ed;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 10;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  z-index: 202;
   min-width: 120px;
-  overflow: hidden;
 }
 
-.profile-post-menu button {
+.profile-post-menu-edit,
+.profile-post-menu-delete {
   display: block;
   width: 100%;
   padding: 10px 16px;
   border: none;
-  background: none;
+  background-color: #fff;
   text-align: left;
   cursor: pointer;
   font-size: 14px;
-  color: #000;
+  font-weight: 500;
+  font-family: inherit;
+  line-height: 1.4;
+  color: #0f1419;
 }
 
-.profile-post-menu button:hover {
-  background: #f7f9fa;
-}
-
-.profile-post-menu button:first-child {
+.profile-post-menu-edit {
   border-bottom: 1px solid #e1e8ed;
+  border-radius: 8px 8px 0 0;
 }
 
-.profile-post-menu button.danger {
+.profile-post-menu-delete {
   color: #e74c3c;
+  border-radius: 0 0 8px 8px;
+}
+
+.profile-post-menu-edit:hover,
+.profile-post-menu-delete:hover {
+  background-color: #f7f9fa;
+}
+
+.profile-post-menu-edit:focus,
+.profile-post-menu-delete:focus {
+  outline: none;
+}
+
+.profile-post-menu-edit:focus-visible,
+.profile-post-menu-delete:focus-visible {
+  outline: 2px solid #7c3aed;
+  outline-offset: -2px;
 }
 
 .profile-post-caption {
