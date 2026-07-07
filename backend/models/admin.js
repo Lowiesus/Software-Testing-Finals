@@ -49,11 +49,18 @@ export class Admin {
   }
 
   static async update(id, updates) {
-    const dbUpdates = { ...updates };
+    const dbUpdates = {};
 
-    if (updates.profilePicture !== undefined) {
-      dbUpdates.profile_picture = updates.profilePicture;
-      delete dbUpdates.profilePicture;
+    if (updates.username !== undefined) dbUpdates.username = updates.username;
+    if (updates.email !== undefined) dbUpdates.email = updates.email;
+    if (updates.password !== undefined) dbUpdates.password = updates.password;
+    if (updates.full_name !== undefined) dbUpdates.full_name = updates.full_name;
+    if (updates.profilePicture !== undefined) dbUpdates.profile_picture = updates.profilePicture;
+    if (updates.is_active !== undefined) dbUpdates.is_active = updates.is_active;
+    if (updates.last_login !== undefined) dbUpdates.last_login = updates.last_login;
+
+    if (Object.keys(dbUpdates).length === 0) {
+      return toUpdateResult(await this.findById(id));
     }
 
     const { data, error } = await supabase.from('admins').update(dbUpdates).eq('id', id).select('*').maybeSingle();

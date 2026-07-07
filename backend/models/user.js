@@ -111,7 +111,18 @@ export class User {
 
     const { data, error } = await supabase.from('users').update(dbUpdates).eq('id', id).select('*').maybeSingle();
 
-    if (error) throw error;
+    if (error) {
+      if (
+        error.message?.includes('bio') &&
+        (error.message?.includes('column') || error.code === 'PGRST204')
+      ) {
+        throw new Error(
+          "Bio column is missing on users table. Run backend/supabase/migrations.sql in Supabase.",
+        );
+      }
+      throw error;
+    }
+
     return toUpdateResult(data);
   }
 

@@ -203,24 +203,31 @@ export async function logout(req, res) {
 export async function updateProfile(req, res) {
   try {
     const { id, role } = req.user;
-    const updates = req.body;
+    const body = req.body || {};
 
-    if (!updates || Object.keys(updates).length === 0)
+    const sanitized = {};
+    if (body.username !== undefined) sanitized.username = body.username;
+    if (body.email !== undefined) sanitized.email = body.email;
+    if (body.password !== undefined && body.password) sanitized.password = body.password;
+    if (body.profilePicture !== undefined) sanitized.profilePicture = body.profilePicture;
+
+    if (role.toLowerCase() !== "admin" && body.bio !== undefined) {
+      sanitized.bio = String(body.bio).trim().slice(0, 160);
+    }
+
+    if (Object.keys(sanitized).length === 0) {
       return res.status(400).json({ message: "No updates provided" });
-
-    delete updates.role; // Prevent role changes
-    delete updates._id; // Prevent ID changes
-    delete updates.created_at; // Prevent creation date changes
+    }
 
     const errors = [];
 
-    if (updates.username && !validators.isValidUsername(updates.username))
+    if (sanitized.username && !validators.isValidUsername(sanitized.username))
       errors.push("Invalid username format");
 
-    if (updates.email && !validators.isValidEmail(updates.email))
+    if (sanitized.email && !validators.isValidEmail(sanitized.email))
       errors.push("Invalid email format");
 
-    if (updates.password && !validators.isValidPassword(updates.password))
+    if (sanitized.password && !validators.isValidPassword(sanitized.password))
       errors.push(
         "Password must be at least 8 characters long and include a mix of uppercase, lowercase, and numbers",
       );
@@ -228,19 +235,23 @@ export async function updateProfile(req, res) {
     if (errors.length > 0)
       return res.status(400).json({ message: errors.join("; ") });
 
-    if (updates.password)
-      updates.password = await bcrypt.hash(updates.password, 10);
+    if (sanitized.password)
+      sanitized.password = await bcrypt.hash(sanitized.password, 10);
 
     const Model = role.toLowerCase() === "admin" ? Admin : User;
-    const result = await Model.update(id, updates);
+    const result = await Model.update(id, sanitized);
 
-    if (result.modifiedCount === 0)
-      return res.status(404).json({ message: "no changes made" });
+    if (result.modifiedCount === 0) {
+      const existingUser = await Model.findById(id);
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+    }
 
     if (role.toLowerCase() !== "admin") {
       const postUpdates = {};
-      if (updates.username) postUpdates.username = updates.username;
-      if (updates.profilePicture) postUpdates.profilePicture = updates.profilePicture;
+      if (sanitized.username) postUpdates.username = sanitized.username;
+      if (sanitized.profilePicture) postUpdates.profilePicture = sanitized.profilePicture;
       if (Object.keys(postUpdates).length > 0) {
         await Post.updateAuthorPosts(id, postUpdates);
       }
@@ -255,7 +266,23 @@ export async function updateProfile(req, res) {
       .status(200)
       .json({ message: "Profile updated successfully", user: updatedUser });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error("Update profile error:", error);
+
+    const message = error.message || "Server error";
+    const isMissingBioColumn =
+      message.includes("bio") &&
+      (message.includes("column") ||
+        message.includes("schema cache") ||
+        error.code === "PGRST204");
+
+    if (isMissingBioColumn) {
+      return res.status(400).json({
+        message:
+          "Bio is not enabled in the database yet. Run backend/supabase/migrations.sql in the Supabase SQL Editor.",
+      });
+    }
+
+    res.status(500).json({ message: "Server error", error: message });
   }
 }
 
