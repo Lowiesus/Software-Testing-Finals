@@ -10,6 +10,11 @@ import { deleteImageByUrl } from "../utils/storage.js";
 
 // Seed in first admin account
 export async function seedAdmin() {
+  if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD) {
+    console.warn('Skipping admin seed: ADMIN_EMAIL or ADMIN_PASSWORD is not set');
+    return;
+  }
+
   const existing = await Admin.findByEmail(process.env.ADMIN_EMAIL);
   if (!existing) {
     await Admin.create({

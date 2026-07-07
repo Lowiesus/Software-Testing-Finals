@@ -70,6 +70,18 @@ app.use(
 
 app.get("/ping", (req, res) => res.json({ message: "pong" }));
 
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    message: "ok",
+    configured: {
+      supabaseUrl: Boolean(process.env.SUPABASE_URL),
+      supabaseServiceKey: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+      jwtSecret: Boolean(process.env.JWT_SECRET),
+      jwtRefreshSecret: Boolean(process.env.JWT_REFRESH_SECRET),
+    },
+  });
+});
+
 app.post("/test-google-login", (req, res) => {
   res.json({ message: "Google login endpoint is working" });
 });

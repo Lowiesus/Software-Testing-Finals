@@ -1,7 +1,6 @@
 import { User, USER_STATUS } from "../models/user.js";
 import { Admin } from "../models/admin.js";
 import { Post } from "../models/post.js";
-import sharp from "sharp";
 import path from "path";
 import fs from "fs";
 import bcrypt from "bcrypt";
@@ -367,9 +366,8 @@ export async function uploadProfilePicture(req, res) {
     const fullPath = path.join(getProfileUploadDir(), req.file.filename);
 
     try {
-      await sharp(fullPath)
-        .rotate()
-        .toFile(`${fullPath}.tmp`);
+      const sharp = (await import("sharp")).default;
+      await sharp(fullPath).rotate().toFile(`${fullPath}.tmp`);
       fs.renameSync(`${fullPath}.tmp`, fullPath);
     } catch (err) {
       console.error("Error processing profile picture with sharp:", err.message);

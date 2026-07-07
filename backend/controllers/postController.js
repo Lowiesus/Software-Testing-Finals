@@ -5,23 +5,25 @@ import { Reblog } from "../models/reblog.js";
 import { Like } from "../models/like.js";
 import { Tag } from "../models/tag.js";
 import { User } from "../models/user.js";
-import { getPostUploadDir } from "../utils/uploadPaths.js";
 import { uploadImageFile, deleteImageByUrl } from "../utils/storage.js";
-import sharp from "sharp";
 import path from "path";
 import fs from "fs";
 
-async function processPostImage(file) {
-  const fullPath = path.join(getPostUploadDir(), file.filename);
-
+async function rotateImage(fullPath) {
   try {
-    await sharp(fullPath)
-      .rotate()
-      .toFile(`${fullPath}.tmp`);
+    const sharp = (await import("sharp")).default;
+    await sharp(fullPath).rotate().toFile(`${fullPath}.tmp`);
     fs.renameSync(`${fullPath}.tmp`, fullPath);
   } catch (err) {
     console.error("Error processing image with sharp:", err.message);
   }
+}
+
+async function processPostImage(file) {
+  const { getPostUploadDir } = await import("../utils/uploadPaths.js");
+  const fullPath = path.join(getPostUploadDir(), file.filename);
+
+  await rotateImage(fullPath);
 
   try {
     const publicUrl = await uploadImageFile(file, "posts");
