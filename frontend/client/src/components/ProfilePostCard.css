@@ -80,6 +80,15 @@
   text-align: left;
   cursor: pointer;
   font-size: 14px;
+  color: #000;
+}
+
+.profile-post-menu button:hover {
+  background: #f7f9fa;
+}
+
+.profile-post-menu button:first-child {
+  border-bottom: 1px solid #e1e8ed;
 }
 
 .profile-post-menu button.danger {
@@ -146,6 +155,8 @@
   border-radius: 8px;
   border: none;
   cursor: pointer;
+  color: #000;
+  background: #e5e7eb;
 }
 
 .profile-edit-modal-actions button:last-child {
