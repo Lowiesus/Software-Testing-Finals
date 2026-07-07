@@ -12,3 +12,6 @@ create table if not exists reblogs (
 
 create index if not exists idx_reblogs_user_id on reblogs(user_id);
 create index if not exists idx_reblogs_post_id on reblogs(post_id);
+
+alter table public.reblogs enable row level security;
+alter table public.reblogs force row level security;

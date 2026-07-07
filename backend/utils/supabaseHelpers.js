@@ -142,3 +142,33 @@ export const toInsertResult = (row) => ({
   insertedId: row.id,
   ...mapDocument(row),
 });
+
+export const isMissingTableError = (error, tableName) => {
+  if (!error) return false;
+
+  const message = error.message || '';
+  const mentionsTable =
+    !tableName ||
+    message.toLowerCase().includes(tableName.toLowerCase()) ||
+    message.includes('schema cache');
+
+  return (
+    mentionsTable &&
+    (error.code === 'PGRST205' ||
+      error.code === '42P01' ||
+      message.includes('Could not find the table'))
+  );
+};
+
+export const getMissingTableMessage = (tableName, scriptPath) =>
+  `${tableName} table is missing in Supabase. Run ${scriptPath} in the Supabase SQL Editor.`;
+
+export const assertSupabaseSuccess = (error, { tableName, scriptPath } = {}) => {
+  if (!error) return;
+
+  if (tableName && isMissingTableError(error, tableName)) {
+    throw new Error(getMissingTableMessage(tableName, scriptPath));
+  }
+
+  throw error;
+};

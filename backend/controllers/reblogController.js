@@ -1,5 +1,27 @@
 import { Reblog } from "../models/reblog.js";
 import { Post } from "../models/post.js";
+import { isMissingTableError } from "../utils/supabaseHelpers.js";
+
+function handleReblogRouteError(res, error, action) {
+  console.error(`${action} error:`, error);
+
+  if (isMissingTableError(error, "reblogs")) {
+    return res.status(503).json({
+      message:
+        "Reblogs are not enabled in the database yet. Run backend/supabase/migrations.sql in the Supabase SQL Editor.",
+    });
+  }
+
+  if (error.code === "23505") {
+    return res.status(400).json({ message: "Post already reblogged" });
+  }
+
+  if (error.code === "23503") {
+    return res.status(400).json({ message: "Invalid post or user for reblog" });
+  }
+
+  return res.status(500).json({ message: "Server error", error: error.message });
+}
 
 export async function addReblog(req, res) {
   try {
@@ -15,7 +37,7 @@ export async function addReblog(req, res) {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    if (post.author_id.toString() === userId) {
+    if (post.author_id && String(post.author_id) === String(userId)) {
       return res.status(400).json({ message: "You cannot reblog your own post" });
     }
 
@@ -28,8 +50,7 @@ export async function addReblog(req, res) {
 
     res.status(200).json({ message: "Post reblogged successfully", data: reblog });
   } catch (error) {
-    console.error("Add reblog error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    return handleReblogRouteError(res, error, "Add reblog");
   }
 }
 
@@ -50,8 +71,7 @@ export async function removeReblog(req, res) {
     await Reblog.deleteByPostAndUser(id, userId);
     res.status(200).json({ message: "Reblog removed successfully" });
   } catch (error) {
-    console.error("Remove reblog error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    return handleReblogRouteError(res, error, "Remove reblog");
   }
 }
 
@@ -74,8 +94,7 @@ export async function getRebloggedPosts(req, res) {
 
     res.status(200).json({ data: posts, count: posts.length });
   } catch (error) {
-    console.error("Get reblogged posts error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    return handleReblogRouteError(res, error, "Get reblogged posts");
   }
 }
 
@@ -91,7 +110,6 @@ export async function isPostRebloggedByUser(req, res) {
     const isReblogged = await Reblog.isRebloggedByUser(id, userId);
     res.status(200).json({ data: isReblogged });
   } catch (error) {
-    console.error("Check reblog error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    return handleReblogRouteError(res, error, "Check reblog");
   }
 }
