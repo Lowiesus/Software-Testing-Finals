@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { postAPI } from "../../utils/api.js";
-import { getAssetUrl } from "../../utils/constants.js";
-import { getErrorMessage } from "../../utils/helpers.js";
-import threeDotsIcon from "../../assets/icons/three-dots.png";
+import { postAPI } from "../utils/api.js";
+import { getAssetUrl } from "../utils/constants.js";
+import { getErrorMessage } from "../utils/helpers.js";
+import threeDotsIcon from "../assets/icons/three-dots.png";
+import "./ProfilePostCard.css";
 
 const categories = ["Clothing", "Cosmetics", "Accessories"];
 

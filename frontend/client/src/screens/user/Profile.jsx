@@ -6,7 +6,6 @@ import { getErrorMessage } from "../../utils/helpers.js";
 import Toast from "../../components/Toast.jsx";
 import ProfilePostCard from "../../components/ProfilePostCard.jsx";
 import "./Home.css";
-import "../components/ProfilePostCard.css";
 import editProfileIcon from "../../assets/icons/edit-profile.png";
 
 const UserProfile = () => {
