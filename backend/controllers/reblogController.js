@@ -98,6 +98,25 @@ export async function getRebloggedPosts(req, res) {
   }
 }
 
+export async function getUserRebloggedPosts(req, res) {
+  try {
+    const { userId } = req.params;
+    const { limit = 20, skip = 0 } = req.query;
+
+    const reblogs = await Reblog.findByUserId(userId, parseInt(limit, 10), parseInt(skip, 10));
+    const posts = [];
+
+    for (const reblog of reblogs) {
+      const post = await Post.findById(reblog.post_id.toString());
+      if (post) posts.push(post);
+    }
+
+    res.status(200).json({ data: posts, count: posts.length });
+  } catch (error) {
+    return handleReblogRouteError(res, error, "Get user reblogged posts");
+  }
+}
+
 export async function isPostRebloggedByUser(req, res) {
   try {
     const { id } = req.params;

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { postAPI, authAPI, reblogAPI } from "../../utils/api";
 import { getAssetUrl } from "../../utils/constants.js";
 import { getErrorMessage } from "../../utils/helpers.js";
@@ -11,8 +11,10 @@ import editProfileIcon from "../../assets/icons/edit-profile.png";
 
 const UserProfile = () => {
   const navigate = useNavigate();
+  const { userId: profileUserId } = useParams();
   const [activeTab, setActiveTab] = useState("posts");
   const [user, setUser] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [posts, setPosts] = useState([]);
   const [reblogs, setReblogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,6 +23,10 @@ const UserProfile = () => {
   const [bioDraft, setBioDraft] = useState("");
   const [toast, setToast] = useState({ message: "", type: "info" });
 
+  const isOwnProfile =
+    !profileUserId ||
+    (currentUserId && String(profileUserId) === String(currentUserId));
+
   const tabs = [
     { id: "posts", label: "Posts" },
     { id: "reblogs", label: "Reblogs" },
@@ -28,26 +34,40 @@ const UserProfile = () => {
 
   useEffect(() => {
     fetchUserProfile();
-  }, []);
+  }, [profileUserId]);
 
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
-      const userResponse = await authAPI.getProfile();
-      const currentUser = userResponse.data.user;
-      setUser(currentUser);
-      setBioDraft(currentUser.bio || "");
+      setError("");
 
-      const postsResponse = await postAPI.getUserPosts(currentUser._id, 20, 0);
+      const currentUserResponse = await authAPI.getProfile();
+      const loggedInUser = currentUserResponse.data.user;
+      setCurrentUserId(loggedInUser._id);
+
+      const viewingOwnProfile =
+        !profileUserId ||
+        String(profileUserId) === String(loggedInUser._id);
+
+      const profileUser = viewingOwnProfile
+        ? loggedInUser
+        : (await authAPI.getUserById(profileUserId)).data.user;
+
+      setUser(profileUser);
+      setBioDraft(profileUser.bio || "");
+
+      const targetUserId = profileUser._id;
+      const postsResponse = await postAPI.getUserPosts(targetUserId, 20, 0);
       setPosts(postsResponse.data.data || []);
 
-      const reblogsResponse = await reblogAPI.getRebloggedPosts(20, 0);
+      const reblogsResponse = viewingOwnProfile
+        ? await reblogAPI.getRebloggedPosts(20, 0)
+        : await reblogAPI.getUserRebloggedPosts(targetUserId, 20, 0);
       setReblogs(reblogsResponse.data.data || []);
-
-      setError("");
     } catch (err) {
       console.error("Error fetching profile:", err);
-      setError("Failed to load profile");
+      setError(getErrorMessage(err, "Failed to load profile"));
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -90,18 +110,20 @@ const UserProfile = () => {
                 <span>👤</span>
               )}
             </div>
-            <img
-              src={editProfileIcon}
-              alt="Edit Profile"
-              className="profile-edit-icon"
-              onClick={() => navigate("/user/edit-profile")}
-            />
+            {isOwnProfile && (
+              <img
+                src={editProfileIcon}
+                alt="Edit Profile"
+                className="profile-edit-icon"
+                onClick={() => navigate("/user/edit-profile")}
+              />
+            )}
           </div>
 
           <div className="profile-info">
             <h1>@{user.username}</h1>
 
-            {editingBio ? (
+            {isOwnProfile && editingBio ? (
               <>
                 <textarea
                   className="profile-bio-input"
@@ -127,8 +149,11 @@ const UserProfile = () => {
                 </div>
               </>
             ) : (
-              <div className="profile-bio-display" onClick={() => setEditingBio(true)}>
-                {user.bio || "Click to add a bio..."}
+              <div
+                className={`profile-bio-display ${isOwnProfile ? "profile-bio-display--editable" : ""}`}
+                onClick={isOwnProfile ? () => setEditingBio(true) : undefined}
+              >
+                {user.bio || (isOwnProfile ? "Click to add a bio..." : "No bio yet.")}
               </div>
             )}
 
@@ -160,9 +185,9 @@ const UserProfile = () => {
                 <ProfilePostCard
                   key={post._id}
                   post={post}
-                  isOwner
-                  onUpdated={fetchUserProfile}
-                  onDeleted={fetchUserProfile}
+                  isOwner={isOwnProfile}
+                  onUpdated={isOwnProfile ? fetchUserProfile : undefined}
+                  onDeleted={isOwnProfile ? fetchUserProfile : undefined}
                 />
               ))
             )

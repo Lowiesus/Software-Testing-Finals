@@ -116,6 +116,9 @@ export const authAPI = {
   getProfile: () =>
     apiClient.get("/authentication/users/me"),
 
+  getUserById: (userId) =>
+    apiClient.get(`/authentication/users/${userId}`),
+
   updateProfile: (updates) =>
     apiClient.patch('/authentication/users/me', updates),
 
@@ -239,6 +242,9 @@ export const reblogAPI = {
 
   getRebloggedPosts: (limit = 20, skip = 0) =>
     apiClient.get(`/api/reblogs?limit=${limit}&skip=${skip}`),
+
+  getUserRebloggedPosts: (userId, limit = 20, skip = 0) =>
+    apiClient.get(`/api/users/${userId}/reblogs?limit=${limit}&skip=${skip}`),
 
   isPostRebloggedByUser: (postId) =>
     apiClient.get(`/api/posts/${postId}/reblogs/check`),

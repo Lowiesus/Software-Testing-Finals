@@ -458,3 +458,21 @@ export async function searchUsers(req, res) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 }
+
+export async function getUserProfile(req, res) {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+    if (!user || user.status === USER_STATUS.BANNED) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { password, email, ...publicUser } = user;
+
+    res.status(200).json({ user: publicUser });
+  } catch (error) {
+    console.error("Get user profile error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+}

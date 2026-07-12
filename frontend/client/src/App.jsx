@@ -58,6 +58,7 @@ function AppContent() {
 
           {/* User */}
           <Route path="/user/home" element={<ProtectedRoute><UserHome /></ProtectedRoute>} />
+          <Route path="/user/profile/:userId" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
           <Route path="/user/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
           <Route path="/user/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
           <Route path="/user/library" element={<ProtectedRoute><UserLibrary /></ProtectedRoute>} />

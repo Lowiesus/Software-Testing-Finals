@@ -147,7 +147,7 @@ const UserSearch = () => {
                       key={user._id}
                       type="button"
                       className="search-user-card"
-                      onClick={() => navigate("/user/profile")}
+                      onClick={() => navigate(`/user/profile/${user._id}`)}
                     >
                       <div className="search-user-avatar">
                         {user.profilePicture ? (

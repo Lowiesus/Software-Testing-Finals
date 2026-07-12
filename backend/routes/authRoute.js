@@ -17,6 +17,7 @@ router.post("/refresh", authController.refreshToken);
 router.post("/logout", authController.logout);
 router.get("/users/search", authenticateToken, authController.searchUsers);
 router.get("/users/me", authenticateToken, authController.getProfile);
+router.get("/users/:userId", authenticateToken, authController.getUserProfile);
 router.patch("/users/me", authenticateToken, authController.updateProfile);
 router.post("/users/profile-picture", authenticateToken, uploadProfile.single("profilePicture"), authController.uploadProfilePicture);
 router.delete("/users/me", authenticateToken, authController.deleteProfile);
