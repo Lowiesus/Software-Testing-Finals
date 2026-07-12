@@ -19,6 +19,7 @@ import UserProfile from "./screens/user/Profile";
 import UserLibrary from "./screens/user/Library";
 import UserSettings from "./screens/user/Settings";
 import UserExplore from "./screens/user/Explore";
+import UserSearch from "./screens/user/Search";
 
 
 function AppContent() {
@@ -62,6 +63,7 @@ function AppContent() {
           <Route path="/user/library" element={<ProtectedRoute><UserLibrary /></ProtectedRoute>} />
           <Route path="/user/settings" element={<ProtectedRoute><UserSettings /></ProtectedRoute>} />
           <Route path="/user/explore" element={<ProtectedRoute><UserExplore /></ProtectedRoute>} />
+          <Route path="/user/search" element={<ProtectedRoute><UserSearch /></ProtectedRoute>} />
         </Routes>
       </div>
     </>

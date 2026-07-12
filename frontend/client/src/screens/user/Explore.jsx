@@ -142,6 +142,13 @@ const UserExplore = () => {
           >
             Explore
           </button>
+
+          <button
+            className="tab"
+            onClick={() => navigate("/user/search")}
+          >
+            Search
+          </button>
         </div>
       </div>
 

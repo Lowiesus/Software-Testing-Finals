@@ -9,19 +9,13 @@ import logoutIcon from "../../assets/icons/logout.png";
 import videoIcon from "../../assets/icons/video.png";
 import articleIcon from "../../assets/icons/article.png";
 import { getAssetUrl } from '../../utils/constants.js';
-import { authAPI, postAPI } from '../../utils/api.js';
-import { getErrorMessage } from '../../utils/helpers.js';
+import { authAPI } from '../../utils/api.js';
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState("user");
   const [profilePicture, setProfilePicture] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeSearch, setActiveSearch] = useState("");
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [searchError, setSearchError] = useState("");
-  const [userResults, setUserResults] = useState([]);
-  const [postResults, setPostResults] = useState([]);
 
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
@@ -70,53 +64,17 @@ const Sidebar = () => {
     }
   };
 
-  const handleSearch = async (event) => {
+  const handleSearch = (event) => {
     event.preventDefault();
 
     const trimmedQuery = searchQuery.trim();
     if (!trimmedQuery) {
-      setActiveSearch("");
-      setUserResults([]);
-      setPostResults([]);
-      setSearchError("");
+      navigate("/user/search");
       return;
     }
 
-    setActiveSearch(trimmedQuery);
-    setSearchLoading(true);
-    setSearchError("");
-
-    try {
-      const [usersResponse, postsResponse] = await Promise.all([
-        authAPI.searchUsers(trimmedQuery),
-        postAPI.searchByCaption(trimmedQuery),
-      ]);
-
-      setUserResults(usersResponse.data.data || []);
-      setPostResults(postsResponse.data.data || []);
-    } catch (error) {
-      setSearchError(getErrorMessage(error, "Failed to search. Please try again."));
-      setUserResults([]);
-      setPostResults([]);
-    } finally {
-      setSearchLoading(false);
-    }
+    navigate(`/user/search?q=${encodeURIComponent(trimmedQuery)}`);
   };
-
-  const clearSearch = () => {
-    setSearchQuery("");
-    setActiveSearch("");
-    setUserResults([]);
-    setPostResults([]);
-    setSearchError("");
-  };
-
-  const truncateText = (text, maxLength = 60) => {
-    if (!text) return "";
-    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
-  };
-
-  const showSearchResults = Boolean(activeSearch);
 
   return (
     <>
@@ -201,162 +159,36 @@ const Sidebar = () => {
           </button>
         </form>
 
-        {showSearchResults ? (
-          <div className="right-sidebar-results">
-            <div className="right-sidebar-results-header">
-              <span className="right-sidebar-results-query">
-                Results for &ldquo;{activeSearch}&rdquo;
-              </span>
-              <button
-                type="button"
-                className="right-sidebar-clear-btn"
-                onClick={clearSearch}
-              >
-                Clear
-              </button>
-            </div>
-
-            {searchLoading && (
-              <p className="right-sidebar-status">Searching...</p>
-            )}
-
-            {searchError && (
-              <p className="right-sidebar-status right-sidebar-status--error">
-                {searchError}
-              </p>
-            )}
-
-            {!searchLoading && !searchError && (
-              <>
-                <section className="right-sidebar-section">
-                  <h3 className="right-sidebar-title">
-                    Users ({userResults.length})
-                  </h3>
-                  {userResults.length > 0 ? (
-                    userResults.map((user) => (
-                      <button
-                        key={user._id}
-                        type="button"
-                        className="right-sidebar-result-item right-sidebar-result-item--user"
-                        onClick={() => navigate("/user/profile")}
-                      >
-                        <div className="right-sidebar-result-avatar">
-                          {user.profilePicture ? (
-                            <img
-                              src={getAssetUrl(user.profilePicture)}
-                              alt={user.username}
-                            />
-                          ) : (
-                            <span>{user.username?.charAt(0)?.toUpperCase()}</span>
-                          )}
-                        </div>
-                        <div className="right-sidebar-meta">
-                          <span className="right-sidebar-item-title">
-                            @{user.username}
-                          </span>
-                          <span className="right-sidebar-handle">
-                            View profile
-                          </span>
-                        </div>
-                      </button>
-                    ))
-                  ) : (
-                    <p className="right-sidebar-empty">No matching users found.</p>
-                  )}
-                </section>
-
-                <section className="right-sidebar-section">
-                  <h3 className="right-sidebar-title">
-                    Posts ({postResults.length})
-                  </h3>
-                  {postResults.length > 0 ? (
-                    postResults.map((post) => (
-                      <button
-                        key={post._id}
-                        type="button"
-                        className="right-sidebar-result-item right-sidebar-result-item--post"
-                        onClick={() => navigate("/user/home")}
-                      >
-                        <div
-                          className={`right-sidebar-icon-wrapper ${
-                            post.post_type === "Tutorial" ? "green" : "purple"
-                          }`}
-                        >
-                          {post.image ? (
-                            <img
-                              src={getAssetUrl(post.image)}
-                              alt={post.caption || "Post"}
-                              className="right-sidebar-post-thumb"
-                            />
-                          ) : (
-                            <img
-                              src={
-                                post.post_type === "Tutorial"
-                                  ? articleIcon
-                                  : videoIcon
-                              }
-                              alt="Post"
-                              className="right-sidebar-icon"
-                            />
-                          )}
-                        </div>
-                        <div className="right-sidebar-meta">
-                          <span className="right-sidebar-item-title">
-                            {truncateText(post.caption) || "Untitled post"}
-                          </span>
-                          <span className="right-sidebar-handle">
-                            @{post.author_username}
-                          </span>
-                        </div>
-                      </button>
-                    ))
-                  ) : (
-                    <p className="right-sidebar-empty">No matching posts found.</p>
-                  )}
-                </section>
-
-                {userResults.length === 0 && postResults.length === 0 && (
-                  <p className="right-sidebar-empty right-sidebar-empty--overall">
-                    No results found for your search.
-                  </p>
-                )}
-              </>
-            )}
+        <div className="right-sidebar-title">Trending Today</div>
+        <div className="right-sidebar-item">
+          <div className="right-sidebar-icon-wrapper purple">
+            <img src={videoIcon} alt="Video" className="right-sidebar-icon" />
           </div>
-        ) : (
-          <>
-            <div className="right-sidebar-title">Trending Today</div>
-            <div className="right-sidebar-item">
-              <div className="right-sidebar-icon-wrapper purple">
-                <img src={videoIcon} alt="Video" className="right-sidebar-icon" />
-              </div>
-              <div className="right-sidebar-meta">
-                <span className="right-sidebar-item-title">Title Here</span>
-                <span className="right-sidebar-handle">@famous_person</span>
-              </div>
-            </div>
-            <div className="right-sidebar-item">
-              <div className="right-sidebar-icon-wrapper green">
-                <img
-                  src={articleIcon}
-                  alt="Article"
-                  className="right-sidebar-icon"
-                />
-              </div>
-              <div className="right-sidebar-meta">
-                <span className="right-sidebar-item-title">Title Here</span>
-                <span className="right-sidebar-handle">@famous_person2</span>
-              </div>
-            </div>
+          <div className="right-sidebar-meta">
+            <span className="right-sidebar-item-title">Title Here</span>
+            <span className="right-sidebar-handle">@famous_person</span>
+          </div>
+        </div>
+        <div className="right-sidebar-item">
+          <div className="right-sidebar-icon-wrapper green">
+            <img
+              src={articleIcon}
+              alt="Article"
+              className="right-sidebar-icon"
+            />
+          </div>
+          <div className="right-sidebar-meta">
+            <span className="right-sidebar-item-title">Title Here</span>
+            <span className="right-sidebar-handle">@famous_person2</span>
+          </div>
+        </div>
 
-            <div className="right-sidebar-title">Recommended for you</div>
-            <div className="right-sidebar-tags">
-              <span className="right-sidebar-tag">Life</span>
-              <span className="right-sidebar-tag">Science</span>
-              <span className="right-sidebar-tag">Technology</span>
-            </div>
-          </>
-        )}
+        <div className="right-sidebar-title">Recommended for you</div>
+        <div className="right-sidebar-tags">
+          <span className="right-sidebar-tag">Life</span>
+          <span className="right-sidebar-tag">Science</span>
+          <span className="right-sidebar-tag">Technology</span>
+        </div>
       </aside>
     </>
   );

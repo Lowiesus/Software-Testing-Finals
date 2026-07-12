@@ -58,12 +58,6 @@ const UserHome = () => {
   const [filterCategory, setFilterCategory] = useState("");
   const [filterPostType, setFilterPostType] = useState("");
   const [currentUserId, setCurrentUserId] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeSearch, setActiveSearch] = useState("");
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [searchError, setSearchError] = useState("");
-  const [userResults, setUserResults] = useState([]);
-  const [postResults, setPostResults] = useState([]);
 
   const availableCategories = ["Clothing", "Cosmetics", "Accessories"];
   const availablePostTypes = ["Standard Post", "Tutorial"];
@@ -81,12 +75,10 @@ const UserHome = () => {
     loadCurrentUser();
   }, []);
 
-  // Fetch posts on component mount and when tab changes
+  // Fetch posts on component mount and when filters change
   useEffect(() => {
-    if (activeTab === "for-you") {
-      fetchPosts();
-    }
-  }, [activeTab, filterCategory, filterPostType]);
+    fetchPosts();
+  }, [filterCategory, filterPostType]);
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -132,52 +124,6 @@ const UserHome = () => {
     } else {
       setFilterPostType(postType);
     }
-  };
-
-  const handleSearch = async (event) => {
-    event.preventDefault();
-
-    const trimmedQuery = searchQuery.trim();
-    if (!trimmedQuery) {
-      setActiveSearch("");
-      setUserResults([]);
-      setPostResults([]);
-      setSearchError("");
-      return;
-    }
-
-    setActiveSearch(trimmedQuery);
-    setSearchLoading(true);
-    setSearchError("");
-
-    try {
-      const [usersResponse, postsResponse] = await Promise.all([
-        authAPI.searchUsers(trimmedQuery),
-        postAPI.searchByCaption(trimmedQuery),
-      ]);
-
-      setUserResults(usersResponse.data.data || []);
-      setPostResults(postsResponse.data.data || []);
-    } catch (err) {
-      setSearchError(getErrorMessage(err, "Failed to search. Please try again."));
-      setUserResults([]);
-      setPostResults([]);
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-
-  const clearSearch = () => {
-    setSearchQuery("");
-    setActiveSearch("");
-    setUserResults([]);
-    setPostResults([]);
-    setSearchError("");
-  };
-
-  const truncateText = (text, maxLength = 80) => {
-    if (!text) return "";
-    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
   };
 
   const togglePostModal = () => {
@@ -290,8 +236,8 @@ const UserHome = () => {
           </button>
 
           <button
-            className={`tab ${activeTab === "search" ? "active" : ""}`}
-            onClick={() => setActiveTab("search")}
+            className="tab"
+            onClick={() => navigate("/user/search")}
           >
             Search
           </button>
@@ -356,14 +302,12 @@ const UserHome = () => {
       </div>
 
       {/* Post Creation Button */}
-      {activeTab === "for-you" && (
-        <div className="post-creation">
-          <div className="post-avatar"></div>
-          <button onClick={togglePostModal} className="post-trigger">
-            What's happening?
-          </button>
-        </div>
-      )}
+      <div className="post-creation">
+        <div className="post-avatar"></div>
+        <button onClick={togglePostModal} className="post-trigger">
+          What's happening?
+        </button>
+      </div>
 
       {/* Post Submission Modal */}
       {showPostModal && (
@@ -615,130 +559,7 @@ const UserHome = () => {
         </div>
       )}
 
-      {/* Feed / Search */}
-      {activeTab === "search" ? (
-        <div className="search-panel">
-          <form className="search-form" onSubmit={handleSearch}>
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search users or posts..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button type="submit" className="search-submit-btn">
-              Search
-            </button>
-          </form>
-
-          {activeSearch && (
-            <div className="search-results-header">
-              <h2 className="search-results-title">
-                Results for &ldquo;{activeSearch}&rdquo;
-              </h2>
-              <button
-                type="button"
-                className="search-clear-btn"
-                onClick={clearSearch}
-              >
-                Clear
-              </button>
-            </div>
-          )}
-
-          {searchLoading && (
-            <div className="loading-message">Searching...</div>
-          )}
-
-          {searchError && <div className="error-message">{searchError}</div>}
-
-          {!searchLoading && !searchError && activeSearch && (
-            <>
-              <section className="search-section">
-                <h3 className="search-section-title">
-                  Users ({userResults.length})
-                </h3>
-                {userResults.length > 0 ? (
-                  <div className="search-user-list">
-                    {userResults.map((user) => (
-                      <button
-                        key={user._id}
-                        type="button"
-                        className="search-user-card"
-                        onClick={() => navigate("/user/profile")}
-                      >
-                        <div className="search-user-avatar">
-                          {user.profilePicture ? (
-                            <img
-                              src={getAssetUrl(user.profilePicture)}
-                              alt={user.username}
-                            />
-                          ) : (
-                            <span>{user.username?.charAt(0)?.toUpperCase()}</span>
-                          )}
-                        </div>
-                        <div className="search-user-meta">
-                          <span className="search-user-name">@{user.username}</span>
-                          {user.bio && (
-                            <span className="search-user-bio">
-                              {truncateText(user.bio, 60)}
-                            </span>
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="search-empty">No matching users found.</p>
-                )}
-              </section>
-
-              <section className="search-section">
-                <h3 className="search-section-title">
-                  Posts ({postResults.length})
-                </h3>
-                {postResults.length > 0 ? (
-                  <div className="search-post-list">
-                    {postResults.map((post) => (
-                      <div key={post._id} className="search-post-card">
-                        {post.image && (
-                          <img
-                            src={getAssetUrl(post.image)}
-                            alt={post.caption || "Post"}
-                            className="search-post-image"
-                          />
-                        )}
-                        <div className="search-post-meta">
-                          <p className="search-post-caption">
-                            {truncateText(post.caption) || "Untitled post"}
-                          </p>
-                          <span className="search-post-author">
-                            @{post.author_username}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="search-empty">No matching posts found.</p>
-                )}
-              </section>
-
-              {userResults.length === 0 && postResults.length === 0 && (
-                <p className="search-empty search-empty--overall">
-                  No results found for your search.
-                </p>
-              )}
-            </>
-          )}
-
-          {!activeSearch && !searchLoading && (
-            <p className="search-hint">
-              Search for users by username or posts by caption.
-            </p>
-          )}
-        </div>
-      ) : (
+      {/* Feed */}
       <div className="feed">
         {loading ? (
           <div className="loading-message">Loading posts...</div>
@@ -752,7 +573,6 @@ const UserHome = () => {
           ))
         )}
       </div>
-      )}
     </div>
   );
 };
