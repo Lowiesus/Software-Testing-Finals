@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import "./Sidebar.css";
 import vivideLogo from "../../assets/icons/vivide logo white.png";
@@ -9,13 +9,20 @@ import logoutIcon from "../../assets/icons/logout.png";
 import videoIcon from "../../assets/icons/video.png";
 import articleIcon from "../../assets/icons/article.png";
 import { getAssetUrl } from '../../utils/constants.js';
-import { authAPI } from '../../utils/api.js';
+import { authAPI, postAPI } from '../../utils/api.js';
+import { getErrorMessage } from '../../utils/helpers.js';
 
 const Sidebar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isExplorePage = location.pathname === "/user/explore";
   const [username, setUsername] = useState("user");
   const [profilePicture, setProfilePicture] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [mostLikedPosts, setMostLikedPosts] = useState([]);
+  const [mostRepostedPosts, setMostRepostedPosts] = useState([]);
+  const [trendingLoading, setTrendingLoading] = useState(false);
+  const [trendingError, setTrendingError] = useState("");
 
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
@@ -34,6 +41,12 @@ const Sidebar = () => {
     window.addEventListener("usernameUpdated", handleUsernameUpdate);
     return () => window.removeEventListener("usernameUpdated", handleUsernameUpdate);
   }, []);
+
+  useEffect(() => {
+    if (isExplorePage) {
+      fetchTrendingPosts();
+    }
+  }, [isExplorePage]);
 
   const fetchUserProfile = async () => {
     try {
@@ -75,6 +88,57 @@ const Sidebar = () => {
 
     navigate(`/user/search?q=${encodeURIComponent(trimmedQuery)}`);
   };
+
+  const fetchTrendingPosts = async () => {
+    setTrendingLoading(true);
+    setTrendingError("");
+
+    try {
+      const response = await postAPI.getExploreTrending(5);
+      setMostLikedPosts(response.data.data?.mostLiked || []);
+      setMostRepostedPosts(response.data.data?.mostReposted || []);
+    } catch (error) {
+      setTrendingError(getErrorMessage(error, "Failed to load trending posts"));
+      setMostLikedPosts([]);
+      setMostRepostedPosts([]);
+    } finally {
+      setTrendingLoading(false);
+    }
+  };
+
+  const truncateText = (text, maxLength = 42) => {
+    if (!text) return "Untitled post";
+    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+  };
+
+  const renderTrendingPost = (post, statLabel, wrapperClass) => (
+    <button
+      key={post._id}
+      type="button"
+      className="right-sidebar-item right-sidebar-item--clickable"
+      onClick={() => navigate("/user/explore")}
+    >
+      <div className={`right-sidebar-icon-wrapper ${wrapperClass}`}>
+        {post.image ? (
+          <img
+            src={getAssetUrl(post.image)}
+            alt={post.caption || "Post"}
+            className="right-sidebar-post-thumb"
+          />
+        ) : (
+          <img src={videoIcon} alt="Post" className="right-sidebar-icon" />
+        )}
+      </div>
+      <div className="right-sidebar-meta">
+        <span className="right-sidebar-item-title">
+          {truncateText(post.caption)}
+        </span>
+        <span className="right-sidebar-handle">
+          @{post.author_username} · {statLabel}
+        </span>
+      </div>
+    </button>
+  );
 
   return (
     <>
@@ -173,36 +237,82 @@ const Sidebar = () => {
           </button>
         </form>
 
-        <div className="right-sidebar-title">Trending Today</div>
-        <div className="right-sidebar-item">
-          <div className="right-sidebar-icon-wrapper purple">
-            <img src={videoIcon} alt="Video" className="right-sidebar-icon" />
-          </div>
-          <div className="right-sidebar-meta">
-            <span className="right-sidebar-item-title">Title Here</span>
-            <span className="right-sidebar-handle">@famous_person</span>
-          </div>
-        </div>
-        <div className="right-sidebar-item">
-          <div className="right-sidebar-icon-wrapper green">
-            <img
-              src={articleIcon}
-              alt="Article"
-              className="right-sidebar-icon"
-            />
-          </div>
-          <div className="right-sidebar-meta">
-            <span className="right-sidebar-item-title">Title Here</span>
-            <span className="right-sidebar-handle">@famous_person2</span>
-          </div>
-        </div>
+        {isExplorePage ? (
+          <div className="right-sidebar-trending">
+            {trendingLoading && (
+              <p className="right-sidebar-status">Loading trending posts...</p>
+            )}
 
-        <div className="right-sidebar-title">Recommended for you</div>
-        <div className="right-sidebar-tags">
-          <span className="right-sidebar-tag">Life</span>
-          <span className="right-sidebar-tag">Science</span>
-          <span className="right-sidebar-tag">Technology</span>
-        </div>
+            {trendingError && (
+              <p className="right-sidebar-status right-sidebar-status--error">
+                {trendingError}
+              </p>
+            )}
+
+            {!trendingLoading && !trendingError && (
+              <>
+                <div className="right-sidebar-title">Most Liked</div>
+                {mostLikedPosts.length > 0 ? (
+                  mostLikedPosts.map((post) =>
+                    renderTrendingPost(
+                      post,
+                      `${post.likeCount || 0} likes`,
+                      "purple",
+                    ),
+                  )
+                ) : (
+                  <p className="right-sidebar-empty">No liked posts yet.</p>
+                )}
+
+                <div className="right-sidebar-title">Most Reposted</div>
+                {mostRepostedPosts.length > 0 ? (
+                  mostRepostedPosts.map((post) =>
+                    renderTrendingPost(
+                      post,
+                      `${post.reblogCount || 0} reposts`,
+                      "green",
+                    ),
+                  )
+                ) : (
+                  <p className="right-sidebar-empty">No reposted posts yet.</p>
+                )}
+              </>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="right-sidebar-title">Trending Today</div>
+            <div className="right-sidebar-item">
+              <div className="right-sidebar-icon-wrapper purple">
+                <img src={videoIcon} alt="Video" className="right-sidebar-icon" />
+              </div>
+              <div className="right-sidebar-meta">
+                <span className="right-sidebar-item-title">Title Here</span>
+                <span className="right-sidebar-handle">@famous_person</span>
+              </div>
+            </div>
+            <div className="right-sidebar-item">
+              <div className="right-sidebar-icon-wrapper green">
+                <img
+                  src={articleIcon}
+                  alt="Article"
+                  className="right-sidebar-icon"
+                />
+              </div>
+              <div className="right-sidebar-meta">
+                <span className="right-sidebar-item-title">Title Here</span>
+                <span className="right-sidebar-handle">@famous_person2</span>
+              </div>
+            </div>
+
+            <div className="right-sidebar-title">Recommended for you</div>
+            <div className="right-sidebar-tags">
+              <span className="right-sidebar-tag">Life</span>
+              <span className="right-sidebar-tag">Science</span>
+              <span className="right-sidebar-tag">Technology</span>
+            </div>
+          </>
+        )}
       </aside>
     </>
   );

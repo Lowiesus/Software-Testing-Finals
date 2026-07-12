@@ -1,120 +1,51 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Explore.css";
-import preferencesIcon from "../../assets/icons/preferences.png";
+import { postAPI } from "../../utils/api";
+import { getAssetUrl } from "../../utils/constants.js";
+import { getErrorMessage } from "../../utils/helpers.js";
 import heartIcon from "../../assets/icons/heart-unfilled.png";
 import commentIcon from "../../assets/icons/comments.png";
 import bookmarkIcon from "../../assets/icons/bookmark.png";
-import threeDotsIcon from "../../assets/icons/three-dots.png";
-
-// Placeholder data
-const placeholderPosts = [
-  {
-    id: 1,
-    image: "https://picsum.photos/400/600",
-    author: "user1",
-    caption: "Beautiful landscape",
-    tags: ["nature", "travel"],
-    likes: 124,
-    comments: 23,
-  },
-  {
-    id: 2,
-    image: "https://picsum.photos/400/300",
-    author: "user2",
-    caption: "City vibes",
-    tags: ["urban", "photography"],
-    likes: 89,
-    comments: 12,
-  },
-  {
-    id: 3,
-    image: "https://picsum.photos/400/500",
-    author: "user3",
-    caption: "Adventure awaits",
-    tags: ["adventure", "hiking"],
-    likes: 156,
-    comments: 34,
-  },
-  {
-    id: 4,
-    image: "https://picsum.photos/400/400",
-    author: "user4",
-    caption: "Sunset magic",
-    tags: ["sunset", "sky"],
-    likes: 203,
-    comments: 45,
-  },
-  {
-    id: 5,
-    image: "https://picsum.photos/400/700",
-    author: "user5",
-    caption: "Mountain views",
-    tags: ["mountains", "nature"],
-    likes: 178,
-    comments: 28,
-  },
-  {
-    id: 6,
-    image: "https://picsum.photos/400/350",
-    author: "user6",
-    caption: "Cozy moments",
-    tags: ["lifestyle", "home"],
-    likes: 92,
-    comments: 15,
-  },
-  {
-    id: 7,
-    image: "https://picsum.photos/400/550",
-    author: "user7",
-    caption: "Ocean breeze",
-    tags: ["ocean", "beach"],
-    likes: 134,
-    comments: 19,
-  },
-  {
-    id: 8,
-    image: "https://picsum.photos/400/450",
-    author: "user8",
-    caption: "Urban exploration",
-    tags: ["city", "architecture"],
-    likes: 167,
-    comments: 31,
-  },
-  {
-    id: 9,
-    image: "https://picsum.photos/400/600",
-    author: "user9",
-    caption: "Forest path",
-    tags: ["forest", "hiking"],
-    likes: 145,
-    comments: 22,
-  },
-  {
-    id: 10,
-    image: "https://picsum.photos/400/400",
-    author: "user10",
-    caption: "Minimalist art",
-    tags: ["art", "design"],
-    likes: 198,
-    comments: 37,
-  },
-];
 
 const UserExplore = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("explore");
-  const [posts, setPosts] = useState([]);
+  const [exploreTab, setExploreTab] = useState("most-liked");
+  const [mostLikedPosts, setMostLikedPosts] = useState([]);
+  const [mostRepostedPosts, setMostRepostedPosts] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => {
-      setPosts(placeholderPosts);
-      setLoading(false);
-    }, 500);
+    fetchTrendingPosts();
   }, []);
+
+  const fetchTrendingPosts = async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await postAPI.getExploreTrending(12);
+      setMostLikedPosts(response.data.data?.mostLiked || []);
+      setMostRepostedPosts(response.data.data?.mostReposted || []);
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to load explore posts"));
+      setMostLikedPosts([]);
+      setMostRepostedPosts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const visiblePosts =
+    exploreTab === "most-liked" ? mostLikedPosts : mostRepostedPosts;
+
+  const truncateText = (text, maxLength = 80) => {
+    if (!text) return "";
+    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+  };
 
   const handlePostClick = (post) => {
     setSelectedPost(post);
@@ -126,7 +57,6 @@ const UserExplore = () => {
 
   return (
     <div className="explore-container">
-      {/* Header with tabs */}
       <div className="explore-header">
         <div className="tabs">
           <button
@@ -143,36 +73,60 @@ const UserExplore = () => {
             Explore
           </button>
 
-          <button
-            className="tab"
-            onClick={() => navigate("/user/search")}
-          >
+          <button className="tab" onClick={() => navigate("/user/search")}>
             Search
           </button>
         </div>
       </div>
 
-      {/* Masonry Grid */}
+      <div className="explore-subtabs">
+        <button
+          className={`explore-subtab ${exploreTab === "most-liked" ? "active" : ""}`}
+          onClick={() => setExploreTab("most-liked")}
+        >
+          Most Liked
+        </button>
+        <button
+          className={`explore-subtab ${exploreTab === "most-reposted" ? "active" : ""}`}
+          onClick={() => setExploreTab("most-reposted")}
+        >
+          Most Reposted
+        </button>
+      </div>
+
       <div className="masonry-grid">
         {loading ? (
           <div className="loading-message">Loading posts...</div>
+        ) : error ? (
+          <div className="error-message">{error}</div>
+        ) : visiblePosts.length === 0 ? (
+          <div className="empty-message">
+            No {exploreTab === "most-liked" ? "liked" : "reposted"} posts yet.
+          </div>
         ) : (
-          posts.map((post) => (
+          visiblePosts.map((post) => (
             <div
-              key={post.id}
+              key={post._id}
               className="masonry-item"
               onClick={() => handlePostClick(post)}
             >
-              <img src={post.image} alt={post.caption} />
+              <img
+                src={getAssetUrl(post.image)}
+                alt={post.caption || "Post"}
+              />
               <div className="masonry-overlay">
-                <span className="masonry-author">@{post.author}</span>
+                <span className="masonry-author">@{post.author_username}</span>
+                <span className="masonry-stat">
+                  {exploreTab === "most-liked"
+                    ? `${post.likeCount || 0} likes`
+                    : `${post.reblogCount || 0} reposts`}
+                </span>
               </div>
             </div>
           ))
         )}
       </div>
 
-      {/* Post Modal */}
       {selectedPost && (
         <div className="post-modal-overlay" onClick={closeModal}>
           <div
@@ -184,20 +138,34 @@ const UserExplore = () => {
             </button>
 
             <div className="post-modal-header">
-              <div className="post-modal-avatar"></div>
+              <div className="post-modal-avatar">
+                {selectedPost.author_profilePicture && (
+                  <img
+                    src={getAssetUrl(selectedPost.author_profilePicture)}
+                    alt={selectedPost.author_username}
+                  />
+                )}
+              </div>
               <div>
                 <div className="post-modal-username">
-                  @{selectedPost.author}
+                  @{selectedPost.author_username}
                 </div>
-                <div className="post-modal-time">2 hours ago</div>
+                <div className="post-modal-time">
+                  {selectedPost.category || "Post"}
+                </div>
               </div>
             </div>
 
             <div className="post-modal-image">
-              <img src={selectedPost.image} alt={selectedPost.caption} />
+              <img
+                src={getAssetUrl(selectedPost.image)}
+                alt={selectedPost.caption || "Post"}
+              />
             </div>
 
-            <p className="post-modal-caption">{selectedPost.caption}</p>
+            <p className="post-modal-caption">
+              {truncateText(selectedPost.caption, 200)}
+            </p>
 
             {selectedPost.tags && selectedPost.tags.length > 0 && (
               <div className="post-modal-tags">
@@ -212,11 +180,15 @@ const UserExplore = () => {
             <div className="post-modal-stats">
               <span className="post-modal-stat">
                 <img src={heartIcon} alt="Like" />
-                {selectedPost.likes}
+                {selectedPost.likeCount || 0}
+              </span>
+              <span className="post-modal-stat">
+                <span className="reblog-stat-icon">↻</span>
+                {selectedPost.reblogCount || 0}
               </span>
               <span className="post-modal-stat">
                 <img src={commentIcon} alt="Comment" />
-                {selectedPost.comments}
+                0
               </span>
               <span className="post-modal-stat">
                 <img src={bookmarkIcon} alt="Bookmark" />0

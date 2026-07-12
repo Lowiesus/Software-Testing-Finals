@@ -22,6 +22,9 @@ router.get("/posts/type/:post_type", postController.getPostsByType);
 // Search posts by caption (must come before /:id to avoid route conflicts)
 router.get("/posts/search/caption", postController.searchByCaption);
 
+// Explore trending posts (must come before /:id to avoid route conflicts)
+router.get("/posts/explore/trending", postController.getExploreTrending);
+
 // Get a specific post
 router.get("/posts/:id", postController.getPost);
 

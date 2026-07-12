@@ -771,7 +771,13 @@ export async function getPostStats(req, res) {
     const commentCount = await Comment.countByPostId(id);
     const bookmarkCount = await Bookmark.countByPostId(id);
     const likeCount = await Like.countByPostId(id);
-    const reblogCount = await Reblog.countByPostId(id);
+    let reblogCount = 0;
+
+    try {
+      reblogCount = await Reblog.countByPostId(id);
+    } catch (reblogError) {
+      console.error("Reblog count unavailable:", reblogError.message);
+    }
 
     const stats = {
       commentCount,
@@ -783,6 +789,50 @@ export async function getPostStats(req, res) {
     res.status(200).json({ data: stats });
   } catch (error) {
     console.error("Get post stats error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+}
+
+export async function getExploreTrending(req, res) {
+  try {
+    const limit = Math.min(parseInt(req.query.limit, 10) || 10, 20);
+    const posts = await Post.getAllPosts(100, 0);
+
+    const postsWithStats = await Promise.all(
+      posts.map(async (post) => {
+        const likeCount = await Like.countByPostId(post._id);
+        let reblogCount = 0;
+
+        try {
+          reblogCount = await Reblog.countByPostId(post._id);
+        } catch (reblogError) {
+          console.error("Reblog count unavailable:", reblogError.message);
+        }
+
+        return {
+          ...post,
+          likeCount,
+          reblogCount,
+        };
+      }),
+    );
+
+    const mostLiked = [...postsWithStats]
+      .sort((a, b) => b.likeCount - a.likeCount || b.reblogCount - a.reblogCount)
+      .slice(0, limit);
+
+    const mostReposted = [...postsWithStats]
+      .sort((a, b) => b.reblogCount - a.reblogCount || b.likeCount - a.likeCount)
+      .slice(0, limit);
+
+    res.status(200).json({
+      data: {
+        mostLiked,
+        mostReposted,
+      },
+    });
+  } catch (error) {
+    console.error("Get explore trending error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 }
