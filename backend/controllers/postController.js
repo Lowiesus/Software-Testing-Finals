@@ -759,6 +759,23 @@ export async function searchByCaption(req, res) {
   }
 }
 
+export async function searchByTag(req, res) {
+  try {
+    const { tag } = req.query;
+
+    if (!tag || !tag.trim()) {
+      return res.status(400).json({ message: "Tag is required" });
+    }
+
+    const posts = await Post.findByTag(tag.trim().toLowerCase());
+
+    res.status(200).json({ data: posts, count: posts.length });
+  } catch (error) {
+    console.error("Search by tag error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+}
+
 export async function getPostStats(req, res) {
   try {
     const { id } = req.params;

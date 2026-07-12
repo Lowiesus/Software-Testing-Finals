@@ -9,18 +9,23 @@ const UserSearch = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const queryFromUrl = searchParams.get("q") || "";
+  const tagFromUrl = searchParams.get("tag") || "";
 
-  const [searchQuery, setSearchQuery] = useState(queryFromUrl);
-  const [activeSearch, setActiveSearch] = useState(queryFromUrl);
+  const [searchQuery, setSearchQuery] = useState(queryFromUrl || tagFromUrl);
+  const [activeSearch, setActiveSearch] = useState(queryFromUrl || tagFromUrl);
+  const [activeTag, setActiveTag] = useState(tagFromUrl);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState("");
   const [userResults, setUserResults] = useState([]);
   const [postResults, setPostResults] = useState([]);
 
   useEffect(() => {
-    setSearchQuery(queryFromUrl);
+    setSearchQuery(queryFromUrl || tagFromUrl);
+    setActiveTag(tagFromUrl);
 
-    if (queryFromUrl.trim()) {
+    if (tagFromUrl.trim()) {
+      runTagSearch(tagFromUrl.trim());
+    } else if (queryFromUrl.trim()) {
       runSearch(queryFromUrl.trim());
     } else {
       setActiveSearch("");
@@ -29,7 +34,25 @@ const UserSearch = () => {
       setSearchError("");
       setSearchLoading(false);
     }
-  }, [queryFromUrl]);
+  }, [queryFromUrl, tagFromUrl]);
+
+  const runTagSearch = async (tag) => {
+    setActiveSearch(tag);
+    setSearchLoading(true);
+    setSearchError("");
+
+    try {
+      const postsResponse = await postAPI.searchByTag(tag);
+      setUserResults([]);
+      setPostResults(postsResponse.data.data || []);
+    } catch (err) {
+      setSearchError(getErrorMessage(err, "Failed to search by tag. Please try again."));
+      setUserResults([]);
+      setPostResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
 
   const runSearch = async (query) => {
     setActiveSearch(query);
@@ -67,6 +90,7 @@ const UserSearch = () => {
 
   const clearSearch = () => {
     setSearchQuery("");
+    setActiveTag("");
     setSearchParams({});
   };
 
@@ -116,7 +140,9 @@ const UserSearch = () => {
         {activeSearch && (
           <div className="search-results-header">
             <h1 className="search-results-title">
-              Results for &ldquo;{activeSearch}&rdquo;
+              {activeTag
+                ? `Posts tagged #${activeSearch}`
+                : `Results for "${activeSearch}"`}
             </h1>
             <button
               type="button"
@@ -136,44 +162,46 @@ const UserSearch = () => {
 
         {!searchLoading && !searchError && activeSearch && (
           <>
-            <section className="search-section">
-              <h2 className="search-section-title">
-                Users ({userResults.length})
-              </h2>
-              {userResults.length > 0 ? (
-                <div className="search-user-list">
-                  {userResults.map((user) => (
-                    <button
-                      key={user._id}
-                      type="button"
-                      className="search-user-card"
-                      onClick={() => navigate(`/user/profile/${user._id}`)}
-                    >
-                      <div className="search-user-avatar">
-                        {user.profilePicture ? (
-                          <img
-                            src={getAssetUrl(user.profilePicture)}
-                            alt={user.username}
-                          />
-                        ) : (
-                          <span>{user.username?.charAt(0)?.toUpperCase()}</span>
-                        )}
-                      </div>
-                      <div className="search-user-meta">
-                        <span className="search-user-name">@{user.username}</span>
-                        {user.bio && (
-                          <span className="search-user-bio">
-                            {truncateText(user.bio, 60)}
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <p className="search-empty">No matching users found.</p>
-              )}
-            </section>
+            {!activeTag && (
+              <section className="search-section">
+                <h2 className="search-section-title">
+                  Users ({userResults.length})
+                </h2>
+                {userResults.length > 0 ? (
+                  <div className="search-user-list">
+                    {userResults.map((user) => (
+                      <button
+                        key={user._id}
+                        type="button"
+                        className="search-user-card"
+                        onClick={() => navigate(`/user/profile/${user._id}`)}
+                      >
+                        <div className="search-user-avatar">
+                          {user.profilePicture ? (
+                            <img
+                              src={getAssetUrl(user.profilePicture)}
+                              alt={user.username}
+                            />
+                          ) : (
+                            <span>{user.username?.charAt(0)?.toUpperCase()}</span>
+                          )}
+                        </div>
+                        <div className="search-user-meta">
+                          <span className="search-user-name">@{user.username}</span>
+                          {user.bio && (
+                            <span className="search-user-bio">
+                              {truncateText(user.bio, 60)}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="search-empty">No matching users found.</p>
+                )}
+              </section>
+            )}
 
             <section className="search-section">
               <h2 className="search-section-title">
@@ -208,7 +236,9 @@ const UserSearch = () => {
 
             {userResults.length === 0 && postResults.length === 0 && (
               <p className="search-empty search-empty--overall">
-                No results found for your search.
+                {activeTag
+                  ? `No posts found with tag #${activeSearch}.`
+                  : "No results found for your search."}
               </p>
             )}
           </>

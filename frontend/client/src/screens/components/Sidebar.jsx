@@ -7,8 +7,7 @@ import libraryIcon from "../../assets/icons/library.png";
 import settingsIcon from "../../assets/icons/settings.png";
 import logoutIcon from "../../assets/icons/logout.png";
 import videoIcon from "../../assets/icons/video.png";
-import articleIcon from "../../assets/icons/article.png";
-import { getAssetUrl } from '../../utils/constants.js';
+import { getAssetUrl, RECOMMENDED_TAGS } from '../../utils/constants.js';
 import { authAPI, postAPI } from '../../utils/api.js';
 import { getErrorMessage } from '../../utils/helpers.js';
 
@@ -43,10 +42,8 @@ const Sidebar = () => {
   }, []);
 
   useEffect(() => {
-    if (isExplorePage) {
-      fetchTrendingPosts();
-    }
-  }, [isExplorePage]);
+    fetchTrendingPosts();
+  }, []);
 
   const fetchUserProfile = async () => {
     try {
@@ -111,12 +108,16 @@ const Sidebar = () => {
     return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
   };
 
-  const renderTrendingPost = (post, statLabel, wrapperClass) => (
+  const handleTagClick = (tag) => {
+    navigate(`/user/search?tag=${encodeURIComponent(tag)}`);
+  };
+
+  const renderTrendingPost = (post, statLabel, wrapperClass, onClickPath = "/user/explore") => (
     <button
       key={post._id}
       type="button"
       className="right-sidebar-item right-sidebar-item--clickable"
-      onClick={() => navigate("/user/explore")}
+      onClick={() => navigate(onClickPath)}
     >
       <div className={`right-sidebar-icon-wrapper ${wrapperClass}`}>
         {post.image ? (
@@ -280,38 +281,49 @@ const Sidebar = () => {
             )}
           </div>
         ) : (
-          <>
-            <div className="right-sidebar-title">Trending Today</div>
-            <div className="right-sidebar-item">
-              <div className="right-sidebar-icon-wrapper purple">
-                <img src={videoIcon} alt="Video" className="right-sidebar-icon" />
-              </div>
-              <div className="right-sidebar-meta">
-                <span className="right-sidebar-item-title">Title Here</span>
-                <span className="right-sidebar-handle">@famous_person</span>
-              </div>
-            </div>
-            <div className="right-sidebar-item">
-              <div className="right-sidebar-icon-wrapper green">
-                <img
-                  src={articleIcon}
-                  alt="Article"
-                  className="right-sidebar-icon"
-                />
-              </div>
-              <div className="right-sidebar-meta">
-                <span className="right-sidebar-item-title">Title Here</span>
-                <span className="right-sidebar-handle">@famous_person2</span>
-              </div>
-            </div>
+          <div className="right-sidebar-trending">
+            {trendingLoading && (
+              <p className="right-sidebar-status">Loading trending posts...</p>
+            )}
 
-            <div className="right-sidebar-title">Recommended for you</div>
-            <div className="right-sidebar-tags">
-              <span className="right-sidebar-tag">Life</span>
-              <span className="right-sidebar-tag">Science</span>
-              <span className="right-sidebar-tag">Technology</span>
-            </div>
-          </>
+            {trendingError && (
+              <p className="right-sidebar-status right-sidebar-status--error">
+                {trendingError}
+              </p>
+            )}
+
+            {!trendingLoading && !trendingError && (
+              <>
+                <div className="right-sidebar-title">Trending Today</div>
+                {mostLikedPosts.length > 0 ? (
+                  mostLikedPosts.slice(0, 3).map((post) =>
+                    renderTrendingPost(
+                      post,
+                      `${post.likeCount || 0} likes`,
+                      "purple",
+                      "/user/explore",
+                    ),
+                  )
+                ) : (
+                  <p className="right-sidebar-empty">No liked posts yet.</p>
+                )}
+
+                <div className="right-sidebar-title">Recommended for you</div>
+                <div className="right-sidebar-tags">
+                  {RECOMMENDED_TAGS.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      className="right-sidebar-tag"
+                      onClick={() => handleTagClick(tag)}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         )}
       </aside>
     </>

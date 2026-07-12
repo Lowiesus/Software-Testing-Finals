@@ -161,6 +161,9 @@ export const postAPI = {
   searchByCaption: (query, limit = 20, skip = 0) =>
     apiClient.get(`/api/posts/search/caption?q=${encodeURIComponent(query)}&limit=${limit}&skip=${skip}`),
 
+  searchByTag: (tag) =>
+    apiClient.get(`/api/posts/search/tag?tag=${encodeURIComponent(tag)}`),
+
   getExploreTrending: (limit = 10) =>
     apiClient.get(`/api/posts/explore/trending?limit=${limit}`),
 
