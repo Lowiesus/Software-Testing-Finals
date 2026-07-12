@@ -440,3 +440,21 @@ export async function uploadProfilePicture(req, res) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 }
+
+export async function searchUsers(req, res) {
+  try {
+    const { q } = req.query;
+
+    if (!q || !q.trim()) {
+      return res.status(400).json({ message: "Search query is required" });
+    }
+
+    const users = await User.searchByUsername(q.trim());
+    const sanitizedUsers = users.map(({ password, email, ...user }) => user);
+
+    res.status(200).json({ data: sanitizedUsers, count: sanitizedUsers.length });
+  } catch (error) {
+    console.error("Search users error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+}

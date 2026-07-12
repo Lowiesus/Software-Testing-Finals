@@ -55,6 +55,18 @@ export class User {
     return mapUsers(data);
   }
 
+  static async searchByUsername(searchTerm, limit = 10) {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, username, profile_picture, status, bio')
+      .ilike('username', `%${searchTerm}%`)
+      .neq('status', USER_STATUS.BANNED)
+      .limit(limit);
+
+    if (error) throw error;
+    return mapUsers(data);
+  }
+
   static async createUser(data) {
     const hashedPassword = await bcrypt.hash(data.password, 10);
 

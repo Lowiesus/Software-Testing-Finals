@@ -119,6 +119,9 @@ export const authAPI = {
   updateProfile: (updates) =>
     apiClient.patch('/authentication/users/me', updates),
 
+  searchUsers: (query, limit = 10) =>
+    apiClient.get(`/authentication/users/search?q=${encodeURIComponent(query)}&limit=${limit}`),
+
   uploadProfilePicture: (formData) =>
     apiClient.post('/authentication/users/profile-picture', formData),
 
@@ -153,7 +156,7 @@ export const postAPI = {
     apiClient.delete(`/api/posts/${id}`),
 
   searchByCaption: (query, limit = 20, skip = 0) =>
-    apiClient.get(`/api/posts/search/caption?query=${query}&limit=${limit}&skip=${skip}`),
+    apiClient.get(`/api/posts/search/caption?q=${encodeURIComponent(query)}&limit=${limit}&skip=${skip}`),
 
   getPostStats: (id) =>
     apiClient.get(`/api/posts/${id}/stats`),

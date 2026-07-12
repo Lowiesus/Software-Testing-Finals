@@ -15,6 +15,7 @@ router.post("/login", authController.login);
 router.post("/google-login", authController.googleLogin);
 router.post("/refresh", authController.refreshToken);
 router.post("/logout", authController.logout);
+router.get("/users/search", authenticateToken, authController.searchUsers);
 router.get("/users/me", authenticateToken, authController.getProfile);
 router.patch("/users/me", authenticateToken, authController.updateProfile);
 router.post("/users/profile-picture", authenticateToken, uploadProfile.single("profilePicture"), authController.uploadProfilePicture);

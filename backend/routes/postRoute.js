@@ -19,6 +19,9 @@ router.get("/posts", postController.getAllPosts);
 // Get posts by type (must come before /:id to avoid route conflicts)
 router.get("/posts/type/:post_type", postController.getPostsByType);
 
+// Search posts by caption (must come before /:id to avoid route conflicts)
+router.get("/posts/search/caption", postController.searchByCaption);
+
 // Get a specific post
 router.get("/posts/:id", postController.getPost);
 
@@ -35,9 +38,6 @@ router.patch(
 
 // Delete a post
 router.delete("/posts/:id", authenticateToken, postController.deletePost);
-
-// Search posts by caption
-router.get("/posts/search/caption", postController.searchByCaption);
 
 // Get post stats
 router.get("/posts/:id/stats", postController.getPostStats);
