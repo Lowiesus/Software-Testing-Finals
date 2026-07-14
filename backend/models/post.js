@@ -92,10 +92,19 @@ export class Post {
   }
 
   static async findByTag(tag) {
-    const { data, error } = await supabase.from('posts').select('*').contains('tags', [tag]);
+    const normalizedTag = tag.trim().toLowerCase();
+
+    const { data, error } = await supabase.from('posts').select('*');
 
     if (error) throw error;
-    return mapPosts(data);
+
+    const matched = (data || []).filter((row) =>
+      (row.tags || []).some(
+        (item) => String(item).trim().toLowerCase() === normalizedTag,
+      ),
+    );
+
+    return mapPosts(matched);
   }
 
   static async getAllPosts(limit = 20, skip = 0) {

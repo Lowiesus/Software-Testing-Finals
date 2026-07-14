@@ -767,7 +767,7 @@ export async function searchByTag(req, res) {
       return res.status(400).json({ message: "Tag is required" });
     }
 
-    const posts = await Post.findByTag(tag.trim().toLowerCase());
+    const posts = await Post.findByTag(tag.trim());
 
     res.status(200).json({ data: posts, count: posts.length });
   } catch (error) {
