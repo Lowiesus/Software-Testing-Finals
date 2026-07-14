@@ -10,6 +10,7 @@ import videoIcon from "../../assets/icons/video.png";
 import { getAssetUrl, RECOMMENDED_TAGS } from '../../utils/constants.js';
 import { authAPI, postAPI } from '../../utils/api.js';
 import { getErrorMessage } from '../../utils/helpers.js';
+import PostDetailModal from '../../components/PostDetailModal.jsx';
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ const Sidebar = () => {
   const [mostRepostedPosts, setMostRepostedPosts] = useState([]);
   const [trendingLoading, setTrendingLoading] = useState(false);
   const [trendingError, setTrendingError] = useState("");
+  const [selectedPost, setSelectedPost] = useState(null);
 
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
@@ -112,12 +114,12 @@ const Sidebar = () => {
     navigate(`/user/search?tag=${encodeURIComponent(tag)}`);
   };
 
-  const renderTrendingPost = (post, statLabel, wrapperClass, onClickPath = "/user/explore") => (
+  const renderTrendingPost = (post, statLabel, wrapperClass) => (
     <button
       key={post._id}
       type="button"
       className="right-sidebar-item right-sidebar-item--clickable"
-      onClick={() => navigate(onClickPath)}
+      onClick={() => setSelectedPost(post)}
     >
       <div className={`right-sidebar-icon-wrapper ${wrapperClass}`}>
         {post.image ? (
@@ -301,7 +303,6 @@ const Sidebar = () => {
                       post,
                       `${post.likeCount || 0} likes`,
                       "purple",
-                      "/user/explore",
                     ),
                   )
                 ) : (
@@ -326,6 +327,11 @@ const Sidebar = () => {
           </div>
         )}
       </aside>
+
+      <PostDetailModal
+        post={selectedPost}
+        onClose={() => setSelectedPost(null)}
+      />
     </>
   );
 };
