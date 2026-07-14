@@ -84,6 +84,11 @@ const UserProfile = () => {
     }
   };
 
+  const handleRemoveReblog = (postId) => {
+    setReblogs((prev) => prev.filter((post) => post._id !== postId));
+    setToast({ message: "Reblog removed successfully!", type: "success" });
+  };
+
   if (loading) {
     return <div className="profile-loading">Loading...</div>;
   }
@@ -198,7 +203,12 @@ const UserProfile = () => {
               <p>No reblogs yet.</p>
             ) : (
               reblogs.map((post) => (
-                <ProfilePostCard key={post._id} post={post} isOwner={false} />
+                <ProfilePostCard
+                  key={post._id}
+                  post={post}
+                  isOwner={false}
+                  onRemoveReblog={isOwnProfile ? handleRemoveReblog : undefined}
+                />
               ))
             )
           )}

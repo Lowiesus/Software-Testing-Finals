@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
-import { postAPI } from "../utils/api.js";
+import { postAPI, reblogAPI } from "../utils/api.js";
 import { getAssetUrl } from "../utils/constants.js";
 import { getErrorMessage } from "../utils/helpers.js";
 import EditPostModal from "./EditPostModal.jsx";
 import threeDotsIcon from "../assets/icons/three-dots.png";
 import "./ProfilePostCard.css";
 
-export default function ProfilePostCard({ post, isOwner, onUpdated, onDeleted }) {
+export default function ProfilePostCard({ post, isOwner, onUpdated, onDeleted, onRemoveReblog }) {
   const [showMenu, setShowMenu] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [displayPost, setDisplayPost] = useState(post);
+  const [removingReblog, setRemovingReblog] = useState(false);
 
   useEffect(() => {
     setDisplayPost(post);
@@ -23,6 +24,20 @@ export default function ProfilePostCard({ post, isOwner, onUpdated, onDeleted })
       onDeleted?.();
     } catch (error) {
       alert(getErrorMessage(error, "Failed to delete post"));
+    }
+  };
+
+  const handleRemoveReblog = async () => {
+    if (!onRemoveReblog || removingReblog) return;
+
+    setRemovingReblog(true);
+    try {
+      await reblogAPI.removeReblog(displayPost._id);
+      onRemoveReblog(displayPost._id);
+    } catch (error) {
+      alert(getErrorMessage(error, "Failed to remove reblog"));
+    } finally {
+      setRemovingReblog(false);
     }
   };
 
@@ -72,6 +87,18 @@ export default function ProfilePostCard({ post, isOwner, onUpdated, onDeleted })
               </div>
             )}
           </div>
+        )}
+
+        {onRemoveReblog && (
+          <button
+            type="button"
+            className="profile-post-remove-reblog"
+            onClick={handleRemoveReblog}
+            disabled={removingReblog}
+            title="Remove reblog"
+          >
+            {removingReblog ? "..." : "Remove reblog"}
+          </button>
         )}
       </div>
 
