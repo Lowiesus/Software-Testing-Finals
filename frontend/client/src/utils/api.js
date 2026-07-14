@@ -28,12 +28,6 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-const clearSession = () => {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('username');
-  localStorage.removeItem('role');
-};
-
 // Add token to requests if it exists
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
@@ -84,12 +78,6 @@ apiClient.interceptors.response.use(
       return apiClient(originalRequest);
     } catch (refreshError) {
       processQueue(refreshError, null);
-      clearSession();
-
-      if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
-        window.location.href = '/login';
-      }
-
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

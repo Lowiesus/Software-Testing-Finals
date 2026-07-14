@@ -23,7 +23,7 @@ export async function generateTokens(user) {
   const accessToken = jwt.sign(
     { id: userId, role: user.role },
     process.env.JWT_SECRET,
-    { expiresIn: "15m" },
+    { expiresIn: "7d" },
   );
 
   const refreshToken = jwt.sign(
@@ -170,7 +170,7 @@ export async function refreshToken(req, res) {
       const newAcessToken = jwt.sign(
         { id: user.id, role: user.role },
         process.env.JWT_SECRET,
-        { expiresIn: "15m" },
+        { expiresIn: "7d" },
       );
 
       res.status(200).json({ accessToken: newAcessToken });
