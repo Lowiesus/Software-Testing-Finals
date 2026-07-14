@@ -40,6 +40,11 @@ const UserExplore = () => {
   const visiblePosts =
     exploreTab === "most-liked" ? mostLikedPosts : mostRepostedPosts;
 
+  const truncateText = (text, maxLength = 80) => {
+    if (!text) return "";
+    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+  };
+
   const handlePostClick = (post) => {
     setSelectedPost(post);
   };
@@ -87,7 +92,7 @@ const UserExplore = () => {
         </button>
       </div>
 
-      <div className="masonry-grid">
+      <div className="explore-content">
         {loading ? (
           <div className="loading-message">Loading posts...</div>
         ) : error ? (
@@ -97,26 +102,37 @@ const UserExplore = () => {
             No {exploreTab === "most-liked" ? "liked" : "reposted"} posts yet.
           </div>
         ) : (
-          visiblePosts.map((post) => (
-            <div
-              key={post._id}
-              className="masonry-item"
-              onClick={() => handlePostClick(post)}
-            >
-              <img
-                src={getAssetUrl(post.image)}
-                alt={post.caption || "Post"}
-              />
-              <div className="masonry-overlay">
-                <span className="masonry-author">@{post.author_username}</span>
-                <span className="masonry-stat">
-                  {exploreTab === "most-liked"
-                    ? `${post.likeCount || 0} likes`
-                    : `${post.reblogCount || 0} reposts`}
-                </span>
-              </div>
-            </div>
-          ))
+          <div className="explore-post-list">
+            {visiblePosts.map((post) => (
+              <button
+                key={post._id}
+                type="button"
+                className="explore-post-card"
+                onClick={() => handlePostClick(post)}
+              >
+                {post.image && (
+                  <img
+                    src={getAssetUrl(post.image)}
+                    alt={post.caption || "Post"}
+                    className="explore-post-image"
+                  />
+                )}
+                <div className="explore-post-meta">
+                  <p className="explore-post-caption">
+                    {truncateText(post.caption) || "Untitled post"}
+                  </p>
+                  <span className="explore-post-author">
+                    @{post.author_username}
+                  </span>
+                  <span className="explore-post-stat">
+                    {exploreTab === "most-liked"
+                      ? `${post.likeCount || 0} likes`
+                      : `${post.reblogCount || 0} reposts`}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
         )}
       </div>
 
