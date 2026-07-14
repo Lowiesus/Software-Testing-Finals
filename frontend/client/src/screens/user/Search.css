@@ -225,10 +225,19 @@
 .search-post-card {
   display: flex;
   gap: 14px;
+  width: 100%;
   padding: 14px 16px;
   border: 1px solid #e5e7eb;
   border-radius: 16px;
   background: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-post-card:hover {
+  border-color: #ff8c42;
+  box-shadow: 0 4px 14px rgba(255, 140, 66, 0.12);
 }
 
 .search-post-image {

@@ -4,9 +4,7 @@ import "./Explore.css";
 import { postAPI } from "../../utils/api";
 import { getAssetUrl } from "../../utils/constants.js";
 import { getErrorMessage } from "../../utils/helpers.js";
-import heartIcon from "../../assets/icons/heart-unfilled.png";
-import commentIcon from "../../assets/icons/comments.png";
-import bookmarkIcon from "../../assets/icons/bookmark.png";
+import PostDetailModal from "../../components/PostDetailModal.jsx";
 
 const UserExplore = () => {
   const navigate = useNavigate();
@@ -41,11 +39,6 @@ const UserExplore = () => {
 
   const visiblePosts =
     exploreTab === "most-liked" ? mostLikedPosts : mostRepostedPosts;
-
-  const truncateText = (text, maxLength = 80) => {
-    if (!text) return "";
-    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
-  };
 
   const handlePostClick = (post) => {
     setSelectedPost(post);
@@ -127,76 +120,7 @@ const UserExplore = () => {
         )}
       </div>
 
-      {selectedPost && (
-        <div className="post-modal-overlay" onClick={closeModal}>
-          <div
-            className="post-modal-content"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button className="post-modal-close" onClick={closeModal}>
-              ✕
-            </button>
-
-            <div className="post-modal-header">
-              <div className="post-modal-avatar">
-                {selectedPost.author_profilePicture && (
-                  <img
-                    src={getAssetUrl(selectedPost.author_profilePicture)}
-                    alt={selectedPost.author_username}
-                  />
-                )}
-              </div>
-              <div>
-                <div className="post-modal-username">
-                  @{selectedPost.author_username}
-                </div>
-                <div className="post-modal-time">
-                  {selectedPost.category || "Post"}
-                </div>
-              </div>
-            </div>
-
-            <div className="post-modal-image">
-              <img
-                src={getAssetUrl(selectedPost.image)}
-                alt={selectedPost.caption || "Post"}
-              />
-            </div>
-
-            <p className="post-modal-caption">
-              {truncateText(selectedPost.caption, 200)}
-            </p>
-
-            {selectedPost.tags && selectedPost.tags.length > 0 && (
-              <div className="post-modal-tags">
-                {selectedPost.tags.map((tag) => (
-                  <span key={tag} className="post-modal-tag">
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            <div className="post-modal-stats">
-              <span className="post-modal-stat">
-                <img src={heartIcon} alt="Like" />
-                {selectedPost.likeCount || 0}
-              </span>
-              <span className="post-modal-stat">
-                <span className="reblog-stat-icon">↻</span>
-                {selectedPost.reblogCount || 0}
-              </span>
-              <span className="post-modal-stat">
-                <img src={commentIcon} alt="Comment" />
-                0
-              </span>
-              <span className="post-modal-stat">
-                <img src={bookmarkIcon} alt="Bookmark" />0
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
+      <PostDetailModal post={selectedPost} onClose={closeModal} />
     </div>
   );
 };

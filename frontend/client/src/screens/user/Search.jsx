@@ -4,6 +4,7 @@ import "./Search.css";
 import { authAPI, postAPI } from "../../utils/api";
 import { getAssetUrl } from "../../utils/constants.js";
 import { getErrorMessage } from "../../utils/helpers.js";
+import PostDetailModal from "../../components/PostDetailModal.jsx";
 
 const UserSearch = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const UserSearch = () => {
   const [searchError, setSearchError] = useState("");
   const [userResults, setUserResults] = useState([]);
   const [postResults, setPostResults] = useState([]);
+  const [selectedPost, setSelectedPost] = useState(null);
 
   useEffect(() => {
     setSearchQuery(queryFromUrl || tagFromUrl);
@@ -210,7 +212,12 @@ const UserSearch = () => {
               {postResults.length > 0 ? (
                 <div className="search-post-list">
                   {postResults.map((post) => (
-                    <div key={post._id} className="search-post-card">
+                    <button
+                      key={post._id}
+                      type="button"
+                      className="search-post-card"
+                      onClick={() => setSelectedPost(post)}
+                    >
                       {post.image && (
                         <img
                           src={getAssetUrl(post.image)}
@@ -226,7 +233,7 @@ const UserSearch = () => {
                           @{post.author_username}
                         </span>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               ) : (
@@ -250,6 +257,11 @@ const UserSearch = () => {
           </p>
         )}
       </div>
+
+      <PostDetailModal
+        post={selectedPost}
+        onClose={() => setSelectedPost(null)}
+      />
     </div>
   );
 };
